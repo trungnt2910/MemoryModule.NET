@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+		<OutputType>Exe</OutputType>
+		<Platforms>AnyCPU;x86;x64</Platforms>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Content Include="SampleDLL.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="SampleDLL64.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\MemoryModule\MemoryModule.csproj" />
+	</ItemGroup>
+
+</Project>

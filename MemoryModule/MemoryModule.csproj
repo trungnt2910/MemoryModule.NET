@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Platforms>AnyCPU;x86;x64</Platforms>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
+	</ItemGroup>
+</Project>
