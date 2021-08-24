@@ -12,10 +12,6 @@ namespace MemoryModule
         public const int FileMachinei386 = 0x14c;
         public const int FileMachineAMD64 = 0x8664;
         public const int FileDll = 0x2000;
-        public const int DirectoryEntryImport = 1;
-        public const int DirectoryEntryBaseReloc = 5;
-        public const int DirectoryEntryTls = 9;
-        public const int DirectoryEntryExport = 0;
         public const int SizeOfBaseRelocation = 8;
         public const ulong OrdinalFlag64 = 0x8000000000000000;
         public const uint OrdinalFlag32 = 0x80000000;

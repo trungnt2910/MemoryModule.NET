@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MemoryModule
 {
-    enum Heap : uint
+    internal enum Heap : uint
     {
         ZeroMemory = 0x00000008,
     }

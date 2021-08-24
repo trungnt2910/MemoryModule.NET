@@ -7,7 +7,7 @@ using System.Text;
 
 namespace MemoryModule
 {
-    public static unsafe class CStyleMemory
+    internal static unsafe class CStyleMemory
     {
         private const int magic = 0x414d_534c;
 

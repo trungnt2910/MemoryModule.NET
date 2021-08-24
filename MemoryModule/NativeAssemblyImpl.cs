@@ -109,18 +109,19 @@ namespace MemoryModule
         public static CustomFreeLibraryFunc MemoryDefaultFreeLibraryDelegate = MemoryDefaultFreeLibrary;
 
         #region Default dependency resolvers
-        private static void* MemoryDefaultAlloc(void* address, UIntPtr size, uint allocationType, uint protect, void* userdata)
+        private static void* MemoryDefaultAlloc(void* address, UIntPtr size, MemoryAllocation allocationType, PageProtection protect, void* userdata)
         {
             return VirtualAlloc(address, size, allocationType, protect);
         }
 
-        private static bool MemoryDefaultFree(void* lpAddress, UIntPtr dwSize, uint dwFreeType, void* userdata)
+        private static bool MemoryDefaultFree(void* lpAddress, UIntPtr dwSize, MemoryAllocation dwFreeType, void* userdata)
         {
             return VirtualFree(lpAddress, dwSize, dwFreeType);
         }
 
         private static void* MemoryDefaultLoadLibrary(char* filename, void* userdata)
         {
+            System.Diagnostics.Debug.WriteLine(Marshal.PtrToStringAnsi((IntPtr)filename));
             void* result;
             result = LoadLibraryA(filename);
             if (result == null)
@@ -148,19 +149,19 @@ namespace MemoryModule
             Image.FileMachinei386);
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
-        private static readonly int[][][] ProtectionFlags = new int[][][]
+        private static readonly PageProtection[][][] ProtectionFlags = new PageProtection[][][]
         {
-            new int [][]
+            new PageProtection[][]
             {
                 // not executable
-                new int [] {(int)Page.NoAccess, (int)Page.WriteCopy},
-                new int [] {(int)Page.ReadOnly, (int)Page.ReadWrite},
+                new [] {PageProtection.NoAccess, PageProtection.WriteCopy},
+                new [] {PageProtection.ReadOnly, PageProtection.ReadWrite},
             },
-            new int [][]
+            new PageProtection[][]
             {
             // executable
-                new int [] { (int)Page.Execute, (int)Page.ExecuteWriteCopy},
-                new int [] { (int)Page.ExecuteRead, (int)Page.ExecuteReadWrite},
+                new [] { PageProtection.Execute, PageProtection.ExecuteWriteCopy},
+                new [] { PageProtection.ExecuteRead, PageProtection.ExecuteReadWrite},
             },
         };
 
@@ -273,8 +274,8 @@ namespace MemoryModule
                 // calling DllEntry raises an exception if we don't...
                 code = (byte*)allocMemory((void*)old_header->OptionalHeader.ImageBase,
                     (UIntPtr)alignedImageSize,
-                    (uint)(Memory.Reserve | Memory.Commit),
-                    (uint)Page.ReadWrite,
+                    MemoryAllocation.Reserve | MemoryAllocation.Commit,
+                    PageProtection.ReadWrite,
                     userdata);
 
                 if (code == null)
@@ -283,8 +284,8 @@ namespace MemoryModule
                     // try to allocate memory at arbitrary position
                     code = (byte*)allocMemory(null,
                         (UIntPtr)alignedImageSize,
-                        (uint)(Memory.Reserve | Memory.Commit),
-                        (uint)Page.ReadWrite,
+                        MemoryAllocation.Reserve | MemoryAllocation.Commit,
+                        PageProtection.ReadWrite,
                         userdata);
                     if (code == null)
                     {
@@ -301,7 +302,7 @@ namespace MemoryModule
                         POINTER_LIST* node = (POINTER_LIST*)CStyleMemory.malloc((uint)sizeof(POINTER_LIST));
                         if (node == null)
                         {
-                            freeMemory(code, (UIntPtr)0, (uint)Memory.Release, userdata);
+                            freeMemory(code, (UIntPtr)0, MemoryAllocation.Release, userdata);
                             FreePointerList(blockedMemory, freeMemory, userdata);
                             SetLastError(Error.OutOfMemory);
                             return null;
@@ -313,8 +314,8 @@ namespace MemoryModule
 
                         code = (byte*)allocMemory(null,
                                         (UIntPtr)alignedImageSize,
-                                        (uint)(Memory.Reserve | Memory.Commit),
-                                        (uint)Page.ReadWrite,
+                                        MemoryAllocation.Reserve | MemoryAllocation.Commit,
+                                        PageProtection.ReadWrite,
                                         userdata);
                         if (code == null)
                         {
@@ -329,7 +330,7 @@ namespace MemoryModule
                 result = (_MEMORYMODULE*)HeapAlloc(GetProcessHeap(), (uint)Heap.ZeroMemory, (uint)Marshal.SizeOf(typeof(_MEMORYMODULE)));
                 if (result == null)
                 {
-                    freeMemory(code, (UIntPtr)0, (uint)Memory.Release, userdata);
+                    freeMemory(code, (UIntPtr)0, MemoryAllocation.Release, userdata);
                     if (Environment.Is64BitProcess)
                     {
                         FreePointerList(blockedMemory, freeMemory, userdata);
@@ -361,8 +362,8 @@ namespace MemoryModule
                 // commit memory for headers
                 headers = (byte*)allocMemory(code,
                             (UIntPtr)old_header->OptionalHeader.SizeOfHeaders,
-                            (uint)Memory.Commit,
-                            (uint)Page.ReadWrite,
+                            MemoryAllocation.Commit,
+                            PageProtection.ReadWrite,
                             userdata);
 
                 // copy PE header to code
@@ -488,7 +489,7 @@ namespace MemoryModule
             if (module->codeBase != null)
             {
                 // release memory of library
-                managedModule.free(module->codeBase, (UIntPtr)0, (uint)Memory.Release, module->userdata);
+                managedModule.free(module->codeBase, (UIntPtr)0, MemoryAllocation.Release, module->userdata);
             }
 
             if (Environment.Is64BitProcess)
@@ -505,7 +506,7 @@ namespace MemoryModule
             byte* codeBase = module->codeBase;
             uint idx = 0;
             _IMAGE_EXPORT_DIRECTORY* exports = default;
-            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, Image.DirectoryEntryExport);
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.Export);
             if (directory->Size == 0)
             {
                 // no export table found
@@ -625,7 +626,7 @@ namespace MemoryModule
             while (node != null)
             {
                 POINTER_LIST* next;
-                freeMemory(node->address, (UIntPtr)0, (uint)Memory.Release, userdata);
+                freeMemory(node->address, (UIntPtr)0, MemoryAllocation.Release, userdata);
                 next = node->next;
                 CStyleMemory.free(node);
                 node = next;
@@ -645,10 +646,10 @@ namespace MemoryModule
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static _IMAGE_DATA_DIRECTORY* GET_HEADER_DICTIONARY(_MEMORYMODULE* module, int idx)
+        private static _IMAGE_DATA_DIRECTORY* GET_HEADER_DICTIONARY(_MEMORYMODULE* module, ImageDirectoryEntry idx)
         {
             // Hope this is safe?
-            return &((_IMAGE_DATA_DIRECTORY*)&module->headers->OptionalHeader.DataDirectory)[idx];
+            return &((_IMAGE_DATA_DIRECTORY*)&module->headers->OptionalHeader.DataDirectory)[(int)idx];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -761,8 +762,8 @@ namespace MemoryModule
                     {
                         dest = (byte*)module.alloc(codeBase + section->VirtualAddress,
                             (UIntPtr)section_size,
-                            (uint)Memory.Commit,
-                            (uint)Page.ReadWrite,
+                            MemoryAllocation.Commit,
+                            PageProtection.ReadWrite,
                             module.userdata
                             );
 
@@ -792,8 +793,8 @@ namespace MemoryModule
                 // commit memory block and copy data from dll
                 dest = (byte*)module.alloc(codeBase + section->VirtualAddress,
                                             (UIntPtr)section->SizeOfRawData,
-                                            (uint)Memory.Commit,
-                                            (uint)Page.ReadWrite,
+                                            MemoryAllocation.Commit,
+                                            PageProtection.ReadWrite,
                                             module.userdata);
                 if (dest == null)
                 {
@@ -818,7 +819,7 @@ namespace MemoryModule
         {
             byte* codeBase = module->codeBase;
             _IMAGE_BASE_RELOCATION* relocation = default;
-            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, (int)Image.DirectoryEntryBaseReloc);
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.BaseReloc);
             if (directory->Size == 0)
             {
                 return delta == 0;
@@ -881,7 +882,7 @@ namespace MemoryModule
             _IMAGE_IMPORT_DESCRIPTOR* importDesc = default;
             bool result = true;
 
-            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, Image.DirectoryEntryImport);
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.Import);
             if (directory->Size == 0)
             {
                 return true;
@@ -972,7 +973,7 @@ namespace MemoryModule
         static bool FinalizeSection(_MEMORYMODULE* module, SECTIONFINALIZEDATA* sectionData)
         {
             var managedModule = MEMORYMODULE.MarshalFrom(module);
-            uint protect = default; uint oldProtect = default;
+            PageProtection protect = default; uint oldProtect = default;
             bool executable = default;
             bool readable = default;
             bool writeable = default;
@@ -992,7 +993,7 @@ namespace MemoryModule
                     )
                 {
                     // Only allowed to decommit whole pages
-                    managedModule.free(sectionData->address, (UIntPtr)sectionData->size, (uint)Memory.Decommit, module->userdata);
+                    managedModule.free(sectionData->address, (UIntPtr)sectionData->size, MemoryAllocation.Decommit, module->userdata);
                 }
                 return true;
             }
@@ -1001,10 +1002,10 @@ namespace MemoryModule
             executable = (sectionData->characteristics & (uint)ImageSectionMemory.Exectute) != 0;
             readable = (sectionData->characteristics & (uint)ImageSectionMemory.Read) != 0;
             writeable = (sectionData->characteristics & (uint)ImageSectionMemory.Write) != 0;
-            protect = (uint)ProtectionFlags[Convert.ToInt32(executable)][Convert.ToInt32(readable)][Convert.ToInt32(writeable)];
+            protect = ProtectionFlags[Convert.ToInt32(executable)][Convert.ToInt32(readable)][Convert.ToInt32(writeable)];
             if (Convert.ToBoolean(sectionData->characteristics & (uint)ImageSectionMemory.NotCached))
             {
-                protect |= (uint)Page.PAGE_NOCACHE;
+                protect |= PageProtection.PAGE_NOCACHE;
             }
 
             // change memory access flags
@@ -1093,7 +1094,7 @@ namespace MemoryModule
             _IMAGE_TLS_DIRECTORY* tls = default;
             void** callback = default;
 
-            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, Image.DirectoryEntryTls);
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.Tls);
             if (directory->VirtualAddress == 0)
             {
                 return true;
@@ -1545,9 +1546,9 @@ namespace MemoryModule
         private delegate int ExeEntryProc();
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void* CustomAllocFunc(void* ptr, UIntPtr size, uint a, uint b, void* ptr1);
+        public delegate void* CustomAllocFunc(void* ptr, UIntPtr size, MemoryAllocation a, PageProtection b, void* ptr1);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate bool CustomFreeFunc(void* ptr, UIntPtr size, uint a, void* ptr1);
+        public delegate bool CustomFreeFunc(void* ptr, UIntPtr size, MemoryAllocation a, void* ptr1);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void* CustomLoadLibraryFunc(char* str, void* ptr);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -1579,10 +1580,10 @@ namespace MemoryModule
         private static extern unsafe int IsBadReadPtr(void* lp, uint ucb);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe void* VirtualAlloc(void* lpAddress, UIntPtr dwSize, uint flAllocationType, uint flProtect);
+        private static extern unsafe void* VirtualAlloc(void* lpAddress, UIntPtr dwSize, MemoryAllocation flAllocationType, PageProtection flProtect);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe bool VirtualFree(void* lpAddress, UIntPtr dwSize, uint dwFreeType);
+        private static extern unsafe bool VirtualFree(void* lpAddress, UIntPtr dwSize, MemoryAllocation dwFreeType);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         // The library name seems to always be ANSI, so we must use LoadLibraryA in this case.
@@ -1595,7 +1596,7 @@ namespace MemoryModule
         private static extern unsafe int FreeLibrary(void* hLibModule);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe int VirtualProtect(void* lpAddress, UIntPtr dwSize, uint flNewProtect, void* lpflOldProtect);
+        private static extern unsafe int VirtualProtect(void* lpAddress, UIntPtr dwSize, PageProtection flNewProtect, void* lpflOldProtect);
         #endregion
     }
 }

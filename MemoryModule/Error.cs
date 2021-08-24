@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MemoryModule
 {
-    public enum Error : uint
+    internal enum Error : uint
     {
         InvalidData = 13,
         BadExeFormat = 193,

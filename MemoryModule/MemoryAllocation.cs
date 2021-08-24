@@ -6,7 +6,7 @@ using System.Text;
 namespace MemoryModule
 {
     [Flags]
-    enum Memory : uint
+    internal enum MemoryAllocation : uint
     {
         Commit = 0x1000,
         Reserve = 0x2000,

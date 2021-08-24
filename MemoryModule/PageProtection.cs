@@ -6,7 +6,7 @@ using System.Text;
 namespace MemoryModule
 {
     [Flags]
-    enum Page : uint
+    internal enum PageProtection : uint
     {
         NoAccess = 0x01,
         ReadOnly = 0x02,

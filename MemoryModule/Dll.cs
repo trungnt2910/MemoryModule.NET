@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MemoryModule
 {
-    public enum Dll : uint
+    internal enum Dll : uint
     {
         ProcessAttach = 1,
         ThreadAttach = 2,

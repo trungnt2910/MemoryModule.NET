@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MemoryModule
 {
-    public enum ImageRelocation
+    internal enum ImageRelocation
     {
         BasedAbsolute = 0,
         BasedHigh = 1,
