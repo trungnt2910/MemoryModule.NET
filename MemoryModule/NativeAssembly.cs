@@ -148,7 +148,7 @@ namespace MemoryModule
         public void Unload()
         {
             IntPtr deadPtr = default;
-            Interlocked.Exchange(ref _handle, deadPtr);
+            deadPtr = Interlocked.Exchange(ref _handle, deadPtr);
 
             FreeLibraryHandle(deadPtr);
         }
