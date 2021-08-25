@@ -1,12 +1,53 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<Platforms>AnyCPU;x86;x64</Platforms>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
-	</ItemGroup>
+  <PropertyGroup>
+    <PackageId>MemoryModule</PackageId>
+    <Authors>trungnt2910</Authors>
+    <Title>MemoryModule implementation for .NET on Windows</Title>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/trungnt2910/MemoryModule.NET</PackageProjectUrl>
+    <Description>
+Loads unmanaged libraries right from your embedded resources!
+Works on Windows only, both on .NET Framework and .NET Core (and of course .NET 5.0)
+	</Description>
+    <Copyright>Copyright (c) 2021 trungnt2910</Copyright>
+    <PackageTags>MemoryModule;Native;Interop;Memory;Assembly</PackageTags>
+    <RepositoryUrl>https://github.com/trungnt2910/MemoryModule.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+	<!-- To do: Remove this line when dotnet pack issue is fixed.
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+	-->
+  </PropertyGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+	<None Include="..\LICENSE.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+      <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+ 
+    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  
+    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
 </Project>
