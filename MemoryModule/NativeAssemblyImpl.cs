@@ -62,30 +62,51 @@ namespace MemoryModule
             CustomFreeLibraryFunc freeLibrary = null
         )
         {
+            fixed (byte* dataPtr = &data[0])
+            {
+                return LoadLibrary(dataPtr, data.LongLength);
+            }
+        }
+
+        /// <summary>
+        /// Load EXE/DLL from memory location with the given size.
+        /// All dependencies are resolved using default LoadLibrary/GetProcAddress
+        /// calls through the Windows API, or through passed delegates.
+        /// </summary>
+        /// <param name="data">The assembly's code</param>
+        /// <param name="length">The assembly's code's length</param>
+        /// <returns>A handle to the loaded assembly</returns>
+        public static IntPtr LoadLibrary(
+            byte* dataPtr,
+            long length,
+            CustomAllocFunc allocMemory = null,
+            CustomFreeFunc freeMemory = null,
+            CustomLoadLibraryFunc loadLibrary = null,
+            CustomGetProcAddressFunc getProcAddress = null,
+            CustomFreeLibraryFunc freeLibrary = null
+        )
+        {
             allocMemory = allocMemory ?? MemoryDefaultAllocDelegate;
             freeMemory = freeMemory ?? MemoryDefaultFreeDelegate;
             loadLibrary = loadLibrary ?? MemoryDefaultLoadLibraryDelegate;
             getProcAddress = getProcAddress ?? MemoryDefaultGetProcAddressDelegate;
             freeLibrary = freeLibrary ?? MemoryDefaultFreeLibraryDelegate;
-
-            fixed (void* dataPtr = &data[0])
+                            
+            var handle = MemoryLoadLibraryEx(
+                dataPtr, 
+                (ulong)length,
+                allocMemory, 
+                freeMemory, 
+                loadLibrary, 
+                getProcAddress, 
+                freeLibrary, 
+                null
+            );
+            if (handle == null)
             {
-                var handle = MemoryLoadLibraryEx(
-                    dataPtr, 
-                    (ulong)data.Length, 
-                    allocMemory, 
-                    freeMemory, 
-                    loadLibrary, 
-                    getProcAddress, 
-                    freeLibrary, 
-                    null
-                );
-                if (handle == null)
-                {
-                    throw new Win32Exception((int)GetLastError());
-                }
-                return new IntPtr(handle);
+                throw new Win32Exception((int)GetLastError());
             }
+            return new IntPtr(handle);
         }
 
         /// <summary>

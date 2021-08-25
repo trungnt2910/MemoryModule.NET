@@ -58,11 +58,67 @@ namespace MemoryModule
         /// <returns>A new NativeAssembly</returns>
         public static NativeAssembly Load(byte[] data, string name = null)
         {
+            unsafe
+            {
+                fixed (byte* dataPtr = &data[0])
+                {
+                    return LoadInternal(dataPtr, data.Length, name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Loads a NativeAssembly, from the specified Stream.
+        /// This function does not dispose the given stream.
+        /// </summary>
+        /// <param name="data">A valid Stream containing the assembly</param>
+        /// <param name="name">The name this assembly should be associated with
+        /// for dependency resolution. Can be null, to exclude from resolution.</param>
+        /// <returns>A new NativeAssembly</returns>
+        public static NativeAssembly Load(Stream data, string name = null)
+        {
+            if (data is MemoryStream mstream)
+            {
+                // Avoids more copying...
+                return Load(mstream.ToArray(), name);
+            }
+            // The most common stream in resoure files.
+            else if (data is UnmanagedMemoryStream umstream)
+            {
+                unsafe
+                {
+                    try
+                    {
+                        return LoadInternal(
+                           umstream.PositionPointer,
+                           umstream.Length - umstream.Position,
+                           name);
+                    }
+                    // There's no quick and easy way to do this,
+                    // but most resource streams are initialized using
+                    // byte*'s anyway.
+                    catch (NotSupportedException)
+                    {
+                        goto loadNormally;
+                    }
+                }
+            }
+            loadNormally:
+                var ms = new MemoryStream();
+                data.CopyTo(ms);
+                var arr = ms.ToArray();
+                ms.Dispose();
+                return Load(arr, name);
+        }
+
+        private static unsafe NativeAssembly LoadInternal(byte* data, long length, string name = null)
+        {
             lock (_handles)
             {
                 var asm = new NativeAssembly();
                 IntPtr handle = NativeAssemblyImpl.LoadLibrary(
                     data,
+                    length,
                     loadLibrary: asm.LoadLibraryDelegate,
                     getProcAddress: GetProcAddressDelegate,
                     freeLibrary: FreeLibraryDelegate
@@ -82,23 +138,6 @@ namespace MemoryModule
 
                 return asm;
             }
-        }
-
-        /// <summary>
-        /// Loads a NativeAssembly, from the specified Stream.
-        /// This function does not dispose the given stream.
-        /// </summary>
-        /// <param name="data">A valid Stream containing the assembly</param>
-        /// <param name="name">The name this assembly should be associated with
-        /// for dependency resolution. Can be null, to exclude from resolution.</param>
-        /// <returns>A new NativeAssembly</returns>
-        public static NativeAssembly Load(Stream data, string name = null)
-        {
-            var ms = new MemoryStream();
-            data.CopyTo(ms);
-            var arr = ms.ToArray();
-            ms.Dispose();
-            return Load(arr, null);
         }
 
         /// <summary>
