@@ -172,17 +172,16 @@ namespace MemoryModule
             {
                 try
                 {
-                    if (handle != IntPtr.Zero)
+                    if (handle != IntPtr.Zero && _handles.ContainsKey(handle))
                     {
                         var info = _handles[handle];
-
-                        NativeAssemblyImpl.FreeLibrary(handle);
-                        _handles.Remove(handle);
-
                         --info.RefCount;
 
                         if (info.RefCount == 0)
                         {
+                            NativeAssemblyImpl.FreeLibrary(handle);
+                            _handles.Remove(handle);
+
                             var nameSet = _libraryMap[info.Name];
                             nameSet.Remove(handle);
 
