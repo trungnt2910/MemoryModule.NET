@@ -1,0 +1,88 @@
+  
+name: CI
+
+on:
+  create:
+    branches:
+      - release/**
+  push:
+    branches:
+    - master
+    - dev/**
+    paths:
+    - MemoryModule/**
+    - MemoryModule.Tests/**
+    - .github/workflows/ci.yml
+  pull_request:
+    branches:
+    - master
+    paths:
+    - MemoryModule/**
+    - MemoryModule.Tests/**
+    - .github/workflows/ci.yml
+
+jobs:
+  build:
+
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'MemoryModule.sln'
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+          
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.10
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      id:   gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.10
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
+
+    - name: Restore dependencies
+      run: nuget restore $SOLUTION
+
+    - name: Setup .NET
+      run: |
+        Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
+        ./dotnet-install.ps1 -Channel Current
+      shell: pwsh
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Build
+      run: msbuild $env:SOLUTION /p:Configuration=$env:BUILD_CONFIG /p:Platform="Any CPU" -p:Version=${{ steps.gitversion.outputs.assemblySemVer }}
+
+    - name: Run tests
+      run: dotnet test /p:Configuration=$env:BUILD_CONFIG /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore --no-build --verbosity normal
+
+    - name: Build nuget packages
+      run: msbuild -t:pack $env:SOLUTION -p:Configuration=$env:BUILD_CONFIG -p:PackageVersion=${{ steps.gitversion.outputs.semVer }}
+
+    - name: Move nuget packages
+      run:  mkdir .nupkgs; get-childitem *.*nupkg -recurse | foreach-object {move-item $_ -destination .nupkgs}
+      shell: pwsh
+
+    - name: Publish nuget artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: packages.${{ steps.gitversion.outputs.semVer }}
+        path: .nupkgs/**
+
+    - name: Publish dev
+      if: github.ref == 'refs/heads/master'
+      run: nuget push .nupkgs\** -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+
+    - name: Publish
+      if: startsWith(github.ref, 'refs/heads/release')
+      run: nuget push .nupkgs\** -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
