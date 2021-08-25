@@ -1,6 +1,7 @@
 ﻿using MemoryModule;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace DemoApp
@@ -18,12 +19,9 @@ namespace DemoApp
 
         static int Main(string[] args)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Greet64();
-            }
-
             var asmBytes = File.ReadAllBytes($"SampleDLL{(Environment.Is64BitProcess ? "64" : "")}.dll");
+
+            NativeAssembly.AssemblyResolve += NativeAssembly_AssemblyResolve;
 
             var asm = NativeAssembly.Load(asmBytes);
 
@@ -39,6 +37,29 @@ namespace DemoApp
 
             asm.Dispose();
             return 0;
+        }
+
+        private static NativeAssembly NativeAssembly_AssemblyResolve(object sender, NativeResolveEventArgs e)
+        {
+            Console.WriteLine(e.RequestingAssembly);
+            Console.WriteLine(e.Name);
+
+            string secretAsmName = $"Secret{(Environment.Is64BitProcess ? "64" : "")}.dll";
+            if (e.Name.Equals(secretAsmName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                using (var resourceStream =
+                    Assembly.GetExecutingAssembly().GetManifestResourceStream($"DemoApp.{secretAsmName}"))
+                {
+                    var asm = NativeAssembly.Load(resourceStream, secretAsmName);
+                    // We are returning a newly-loaded assembly,
+                    // so the resolver should dispose this library,
+                    // and decrement the reference count.
+                    e.ShouldDisposeAssembly = true;
+                    return asm;
+                }
+            }
+
+            return null;
         }
     }
 }

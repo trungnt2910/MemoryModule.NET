@@ -5,12 +5,20 @@
 		<Platforms>AnyCPU;x86;x64</Platforms>
 	</PropertyGroup>
 	<ItemGroup>
+	  <None Remove="Secret.dll" />
+	  <None Remove="Secret64.dll" />
+	</ItemGroup>
+	<ItemGroup>
 	  <Content Include="SampleDLL.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="SampleDLL64.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
+	  <EmbeddedResource Include="Secret.dll">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="Secret64.dll" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\MemoryModule\MemoryModule.csproj" />

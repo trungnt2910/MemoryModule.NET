@@ -1,6 +1,6 @@
 ﻿
 // COPYRIGHT NOTICE FROM MEMORYMODULE
-// This copyright notice below applies for all methods 
+// This copyright notice below applies for all methods
 // that have the same name as a function found in this repository:
 // https://github.com/fancycode/MemoryModule
 /*
@@ -51,15 +51,37 @@ namespace MemoryModule
         /// <summary>
         /// Load EXE/DLL from memory location with the given size.
         /// All dependencies are resolved using default LoadLibrary/GetProcAddress
-        /// calls through the Windows API.
+        /// calls through the Windows API, or through passed delegates.
         /// </summary>
         /// <param name="data">The assembly's code</param>
-        /// <returns></returns>
-        public static IntPtr LoadLibrary(byte[] data)
+        /// <returns>A handle to the loaded assembly</returns>
+        public static IntPtr LoadLibrary(
+            byte[] data, 
+            CustomAllocFunc allocMemory = null,
+            CustomFreeFunc freeMemory = null,
+            CustomLoadLibraryFunc loadLibrary = null,
+            CustomGetProcAddressFunc getProcAddress = null,
+            CustomFreeLibraryFunc freeLibrary = null
+        )
         {
+            allocMemory = allocMemory ?? MemoryDefaultAllocDelegate;
+            freeMemory = freeMemory ?? MemoryDefaultFreeDelegate;
+            loadLibrary = loadLibrary ?? MemoryDefaultLoadLibraryDelegate;
+            getProcAddress = getProcAddress ?? MemoryDefaultGetProcAddressDelegate;
+            freeLibrary = freeLibrary ?? MemoryDefaultFreeLibraryDelegate;
+
             fixed (void* dataPtr = &data[0])
             {
-                var handle = MemoryLoadLibrary(dataPtr, (ulong)data.Length);
+                var handle = MemoryLoadLibraryEx(
+                    dataPtr, 
+                    (ulong)data.Length, 
+                    allocMemory, 
+                    freeMemory, 
+                    loadLibrary, 
+                    getProcAddress, 
+                    freeLibrary, 
+                    null
+                );
                 if (handle == null)
                 {
                     throw new Win32Exception((int)GetLastError());
@@ -72,9 +94,9 @@ namespace MemoryModule
         /// Free previously loaded EXE/DLL.
         /// </summary>
         /// <param name="handle"></param>
-        public static void FreeLibrary(IntPtr handle)
+        public static bool FreeLibrary(IntPtr handle)
         {
-            MemoryFreeLibrary((_MEMORYMODULE*)handle);
+            return MemoryFreeLibrary((_MEMORYMODULE*)handle);
         }
 
         /// <summary>
@@ -101,6 +123,11 @@ namespace MemoryModule
             );
         }
 
+        internal static void* GetProcAddress(void* module, char* name)
+        {
+            return MemoryGetProcAddress((_MEMORYMODULE*)module, name);
+        }
+
         // To ensure that the GC doesn't fuck up our delegates.
         public static CustomAllocFunc MemoryDefaultAllocDelegate = MemoryDefaultAlloc;
         public static CustomFreeFunc MemoryDefaultFreeDelegate = MemoryDefaultFree;
@@ -109,19 +136,18 @@ namespace MemoryModule
         public static CustomFreeLibraryFunc MemoryDefaultFreeLibraryDelegate = MemoryDefaultFreeLibrary;
 
         #region Default dependency resolvers
-        private static void* MemoryDefaultAlloc(void* address, UIntPtr size, MemoryAllocation allocationType, PageProtection protect, void* userdata)
+        internal static void* MemoryDefaultAlloc(void* address, UIntPtr size, MemoryAllocation allocationType, PageProtection protect, void* userdata)
         {
             return VirtualAlloc(address, size, allocationType, protect);
         }
 
-        private static bool MemoryDefaultFree(void* lpAddress, UIntPtr dwSize, MemoryAllocation dwFreeType, void* userdata)
+        internal static bool MemoryDefaultFree(void* lpAddress, UIntPtr dwSize, MemoryAllocation dwFreeType, void* userdata)
         {
             return VirtualFree(lpAddress, dwSize, dwFreeType);
         }
 
-        private static void* MemoryDefaultLoadLibrary(char* filename, void* userdata)
+        internal static void* MemoryDefaultLoadLibrary(char* filename, void* userdata)
         {
-            System.Diagnostics.Debug.WriteLine(Marshal.PtrToStringAnsi((IntPtr)filename));
             void* result;
             result = LoadLibraryA(filename);
             if (result == null)
@@ -132,14 +158,14 @@ namespace MemoryModule
             return (void*)result;
         }
 
-        private static void* MemoryDefaultGetProcAddress(void* module, void* name, void* userdata)
+        internal static void* MemoryDefaultGetProcAddress(void* module, void* name, void* userdata)
         {
             return GetProcAddress(module, name);
         }
 
-        private static void MemoryDefaultFreeLibrary(void* module, void* userdata)
+        internal static bool MemoryDefaultFreeLibrary(void* module, void* userdata)
         {
-            FreeLibrary(module);
+            return FreeLibrary(module);
         }
         #endregion
 
@@ -444,15 +470,16 @@ namespace MemoryModule
                 MemoryFreeLibrary(result);
                 return null;
             }
-        private static void MemoryFreeLibrary(_MEMORYMODULE* mod)
+        private static bool MemoryFreeLibrary(_MEMORYMODULE* mod)
         {
             _MEMORYMODULE* module = (_MEMORYMODULE*)mod;
             var managedModule = MEMORYMODULE.MarshalFrom(mod);
 
             if (module == null)
             {
-                return;
+                return true;
             }
+
             if (Convert.ToBoolean(module->initialized))
             {
                 // notify library about detaching from process
@@ -498,6 +525,8 @@ namespace MemoryModule
             }
 
             HeapFree(GetProcessHeap(), 0, module);
+
+            return true;
         }
 
         private static void* MemoryGetProcAddress(_MEMORYMODULE* mod, char* name)
@@ -1554,7 +1583,7 @@ namespace MemoryModule
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void* CustomGetProcAddressFunc(void* customModule, void* name, void* ptr);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void CustomFreeLibraryFunc(void* customModule, void* ptr);
+        public delegate bool CustomFreeLibraryFunc(void* customModule, void* ptr);
         #endregion
 
         #region P/Invoke
@@ -1593,7 +1622,7 @@ namespace MemoryModule
         private static extern unsafe void* GetProcAddress(void* hModule, void* lpProcName);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe int FreeLibrary(void* hLibModule);
+        private static extern unsafe bool FreeLibrary(void* hLibModule);
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe int VirtualProtect(void* lpAddress, UIntPtr dwSize, PageProtection flNewProtect, void* lpflOldProtect);
