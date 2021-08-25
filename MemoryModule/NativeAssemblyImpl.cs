@@ -1,8 +1,6 @@
-﻿
-// COPYRIGHT NOTICE FROM MEMORYMODULE
-// This copyright notice below applies for all methods
-// that have the same name as a function found in this repository:
-// https://github.com/fancycode/MemoryModule
+﻿// COPYRIGHT NOTICE FROM MEMORYMODULE
+// This copyright notice below applies for the contents of this file.
+
 /*
  * Memory DLL loading code
  * Version 0.0.4
@@ -35,7 +33,7 @@
  * These portions are Copyright (C) 2013 Thomas Heller.
  */
 
-// Any other lines of code are subject to the copyright notice
+// Any other files are subject to the copyright notice
 // in the LICENSE file distributed along with this source code.
 
 using System;
