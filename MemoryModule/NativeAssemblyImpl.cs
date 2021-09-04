@@ -53,7 +53,15 @@ namespace MemoryModule
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
+                LoadLibrary = Linux.NativeAssemblyImpl.LoadLibrary;
+                FreeLibrary = Linux.NativeAssemblyImpl.FreeLibrary;
+                GetSymbol = Linux.NativeAssemblyImpl.GetSymbol;
 
+                MemoryDefaultLoadLibrary = Linux.NativeAssemblyImpl.MemoryDefaultLoadLibrary;
+                MemoryDefaultFreeLibrary = Linux.NativeAssemblyImpl.MemoryDefaultFreeLibrary;
+                MemoryDefaultGetProcAddress = Linux.NativeAssemblyImpl.MemoryDefaultGetProcAddress;
+
+                GetSymbolUnsafe = Linux.NativeAssemblyImpl.GetSymbolUnsafe;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
