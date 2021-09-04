@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Secret.h"
 
+thread_local int threadLocal = 0;
+
 extern "C"
 {
 	__declspec(dllexport) __cdecl void Greet()
@@ -13,5 +15,11 @@ extern "C"
 	{
 		std::cout << "Adding " << a << " and " << b << "..." << std::endl;
 		return a + b;
+	}
+
+	__declspec(dllexport) __cdecl int GetThreadLocalInt()
+	{
+		std::cout << "Address: " << &threadLocal << std::endl;
+		return threadLocal++;
 	}
 }
