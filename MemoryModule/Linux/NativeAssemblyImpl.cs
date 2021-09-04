@@ -699,7 +699,7 @@ namespace MemoryModule.Linux
             // The finalizers should have been copied, along with the program headers.
             module.firstFinalizer = (IntPtr)finiItem.Value;
             module.finalizerArray = (IntPtr)finiArrayItem.Value;
-            module.finalizerArrayCount = finiArrayItem.Value / (ulong)sizeof(IntPtr);
+            module.finalizerArrayCount = finiArraySizeItem.Value / (ulong)sizeof(IntPtr);
         }
 
         private static void Finalize(MemoryModule module)
