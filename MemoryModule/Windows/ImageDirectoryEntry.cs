@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MemoryModule
+namespace MemoryModule.Windows
 {
     internal enum ImageDirectoryEntry
     {

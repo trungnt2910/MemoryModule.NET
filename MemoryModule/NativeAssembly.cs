@@ -28,15 +28,15 @@ namespace MemoryModule
             = new Dictionary<string, HashSet<IntPtr>>(StringComparer.InvariantCultureIgnoreCase);
 
         private static readonly unsafe
-            NativeAssemblyImpl.CustomGetProcAddressFunc GetProcAddressDelegate = GetProcAddressUnsafe;
+            CustomGetProcAddressFunc GetProcAddressDelegate = GetProcAddressUnsafe;
         private static readonly unsafe
-            NativeAssemblyImpl.CustomFreeLibraryFunc FreeLibraryDelegate = FreeLibraryUnsafe;
+            CustomFreeLibraryFunc FreeLibraryDelegate = FreeLibraryUnsafe;
 
         private IntPtr _handle;
         private string _name;
         private bool _disposedValue;
         private readonly unsafe
-            NativeAssemblyImpl.CustomLoadLibraryFunc LoadLibraryDelegate;
+            CustomLoadLibraryFunc LoadLibraryDelegate;
 
 
         private unsafe NativeAssembly()
@@ -159,9 +159,10 @@ namespace MemoryModule
         /// <typeparam name="T">A compatible delegate type.</typeparam>
         /// <param name="name">The exported function's name</param>
         /// <returns>A delegate to the exported function.</returns>
-        public T GetDelegate<T>(string name) where T : Delegate
+        public unsafe T GetDelegate<T>(string name) where T : Delegate
         {
-            return NativeAssemblyImpl.GetDelegate<T>(_handle, name);
+            return Marshal.GetDelegateForFunctionPointer<T>(
+                NativeAssemblyImpl.GetSymbol(_handle, name));
         }
 
         public static event NativeResolveEventHandler AssemblyResolve;
@@ -267,14 +268,14 @@ namespace MemoryModule
             return handle;
         }
 
-        private static unsafe void* GetProcAddressUnsafe(void* module, void* name, void* userdata)
+        private static unsafe void* GetProcAddressUnsafe(void* module, char* name, void* userdata)
         {
             IntPtr handle = (IntPtr)module;
             lock (_handles)
             {
                 if (_handles.ContainsKey(handle))
                 {
-                    return NativeAssemblyImpl.GetProcAddress(module, (char *)name);
+                    return NativeAssemblyImpl.GetSymbolUnsafe(module, name);
                 }
             }
 

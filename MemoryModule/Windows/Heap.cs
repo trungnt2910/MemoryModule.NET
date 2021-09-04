@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MemoryModule
+namespace MemoryModule.Windows
 {
     internal enum Heap : uint
     {
