@@ -49,10 +49,6 @@ namespace GLibcInterop
 
             while (current != null)
             {
-                Console.WriteLine($"0x{(ulong)current:x}");
-                Console.WriteLine($"0x{(ulong)current->next}");
-                Console.WriteLine($"{current->len}");
-
                 var arr = (DtvSlotInfoNative *)((byte *)current + sizeof(DtvSlotInfoListNative));
 
                 if (offset >= (ulong)current->len)
@@ -72,9 +68,6 @@ namespace GLibcInterop
             // but we'll just copy the last entry LMAO.
 
             var nextLength = Math.Max(offset, (ulong)last->len);
-
-            Console.WriteLine(offset);
-            Console.WriteLine(nextLength);
 
             int slotInfoBlockLength =
                     // A few bytes for the struct
