@@ -13,6 +13,8 @@ namespace MemoryModule.Tests
         [Test]
         public void When_Loaded()
         {
+            Helper.PrintEnvironmentDetails();
+
             // Sometimes, low-level segmentation fault can occur, without crashing the test.
             for (int test = 0; test < 10; ++test)
             {

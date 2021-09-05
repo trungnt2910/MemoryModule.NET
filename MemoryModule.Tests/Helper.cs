@@ -28,5 +28,12 @@ namespace MemoryModule.Tests
             }
         }
 
+        public static void PrintEnvironmentDetails()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Console.WriteLine($"glibc version: {GLibcInterop.GlibcTls.Version}");
+            }
+        }
     }
 }

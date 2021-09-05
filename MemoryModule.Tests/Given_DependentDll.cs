@@ -16,6 +16,8 @@ namespace MemoryModule.Tests
         [Test]
         public void When_DependencyPreLoaded()
         {
+            Helper.PrintEnvironmentDetails();
+
             var random = new Random();
 
             for (int test = 0; test < 10; ++test)
@@ -53,6 +55,8 @@ namespace MemoryModule.Tests
         [Test]
         public void When_DependencyLateResolve()
         {
+            Helper.PrintEnvironmentDetails();
+
             var random = new Random();
 
             NativeAssembly.AssemblyResolve += NativeAssembly_AssemblyResolve;
