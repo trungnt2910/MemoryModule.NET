@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -14,10 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SampleDLL.dll" />
-    <EmbeddedResource Include="SampleDLL64.dll" />
+    <EmbeddedResource Include="SampleDll.dll" />
+    <EmbeddedResource Include="SampleDll64.dll" />
     <EmbeddedResource Include="Secret.dll" />
     <EmbeddedResource Include="Secret64.dll" />
+	<EmbeddedResource Include="SampleDll64.so" />
+	<EmbeddedResource Include="Secret64.so" />
   </ItemGroup>
 
   <ItemGroup>

@@ -25,7 +25,8 @@ namespace MemoryModule.Tests
                     .GetManifestResourceStream($"MemoryModule.Tests.{secretDll}");
                 using var secretAsm = NativeAssembly.Load(secretDllStream, secretDll);
 
-                string dllName = Helper.GetDllName("SampleDLL");
+                // That's why I hate Linux. Case sensitive file systems.
+                string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
                     .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
                 using var asm = NativeAssembly.Load(dllStream);
@@ -58,7 +59,7 @@ namespace MemoryModule.Tests
 
             for (int test = 0; test < 10; ++test)
             {
-                string dllName = Helper.GetDllName("SampleDLL");
+                string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
                     .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
                 using var asm = NativeAssembly.Load(dllStream);
