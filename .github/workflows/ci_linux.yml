@@ -50,4 +50,4 @@ jobs:
         dotnet-version: 3.1.x
     
     - name: Run tests
-      run: dotnet test ${{ env.SOLUTION }} /p:Configuration=${{ env.BUILD_CONFIG }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --verbosity normal
+      run: dotnet test ${{ env.SOLUTION }} /p:Configuration=${{ env.BUILD_CONFIG }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura -l "console;verbosity=detailed"

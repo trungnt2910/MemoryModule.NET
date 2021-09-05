@@ -64,7 +64,7 @@ jobs:
       run: msbuild $env:SOLUTION /p:Configuration=$env:BUILD_CONFIG /p:Platform="Any CPU" -p:Version=${{ steps.gitversion.outputs.assemblySemVer }}
 
     - name: Run tests
-      run: dotnet test $env:SOLUTION /p:Configuration=$env:BUILD_CONFIG /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore --no-build --verbosity normal
+      run: dotnet test $env:SOLUTION /p:Configuration=$env:BUILD_CONFIG /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --no-restore --no-build -l "console;verbosity=detailed"
 
     - name: Build nuget packages
       run: msbuild -t:pack $env:SOLUTION -p:Configuration=$env:BUILD_CONFIG -p:PackageVersion=${{ steps.gitversion.outputs.semVer }}
