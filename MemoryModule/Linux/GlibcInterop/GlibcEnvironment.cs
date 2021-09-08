@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GlibcInterop
 {
-    internal static class GlibcEnvironment
+    public static class GlibcEnvironment
     {
         [DllImport("libc")]
         private static extern IntPtr gnu_get_libc_version();

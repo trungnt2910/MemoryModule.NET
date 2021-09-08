@@ -32,7 +32,7 @@ namespace MemoryModule.Tests
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Console.WriteLine($"glibc version: {GlibcInterop.GlibcTls.Version}");
+                Console.WriteLine($"glibc version: {GlibcInterop.GlibcEnvironment.Version}");
             }
         }
     }

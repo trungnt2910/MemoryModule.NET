@@ -7,17 +7,9 @@ using System.Text;
 
 namespace GlibcInterop
 {
-    public static unsafe class GlibcTls
+    internal static unsafe class GlibcTls
     {
         private static readonly RtldGlobal _global;
-
-        private static readonly Version[] TestedVersions =
-            new Version[]
-        {
-            new Version(2, 33),
-        };
-
-        public static readonly Version Version;
 
         /// <summary>
         /// A naive implementation _dl_next_tls_modid,
