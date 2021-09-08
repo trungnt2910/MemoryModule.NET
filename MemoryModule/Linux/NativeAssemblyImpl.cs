@@ -1,4 +1,4 @@
-﻿using GLibcInterop;
+﻿using GlibcInterop;
 using MemoryModule.Linux.Elf;
 using System;
 using System.Collections;
@@ -260,8 +260,8 @@ namespace MemoryModule.Linux
 
             if (module.map != null)
             {
-                CStyleMemory.free(module.map->TlsInitialImage);
-                CStyleMemory.free(module.map);
+                CStyleMemory.free(module.map.TlsInitialImage);
+                module.map.Dispose();
             }
 
             gcHandle.Free();
@@ -410,11 +410,10 @@ namespace MemoryModule.Linux
                 return;
             }
 
-            module.map = (LinkMap*)CStyleMemory.malloc((uint)sizeof(LinkMap));
-            CStyleMemory.memset(module.map, 0, (uint)sizeof(LinkMap));
-            module.map->TlsBlockAlignment = tlsSection.Align;
-            module.map->TlsBlockSize = tlsSection.MemorySize;
-            module.map->TlsInitImageSize = tlsSection.FileSize;
+            module.map = new LinkMap();
+            module.map.TlsBlockAlignment = tlsSection.Align;
+            module.map.TlsBlockSize = tlsSection.MemorySize;
+            module.map.TlsInitImageSize = tlsSection.FileSize;
 
             // We need to allocate a new array, as the given memory pointer
             // does not need to be valid after the library has loaded.
@@ -423,10 +422,10 @@ namespace MemoryModule.Linux
 
             CStyleMemory.memcpy(tlsImagePtr, tlsImageInFile, (uint)tlsSection.FileSize);
 
-            module.map->TlsInitialImage = tlsImagePtr;
+            module.map.TlsInitialImage = tlsImagePtr;
 
             var modId = GlibcTls.GetNextModuleId();
-            module.map->TlsModuleId = modId;
+            module.map.TlsModuleId = modId;
 
             GlibcTls.AddToSlotInfo(module.map);
         }
@@ -570,7 +569,7 @@ namespace MemoryModule.Linux
                 }
                 else if (rela.Type.IsModule())
                 {
-                    *affected = (void*)module.map->TlsModuleId;
+                    *affected = (void*)module.map.TlsModuleId;
                 }
                 else if (rela.Type.IsOffset())
                 {
@@ -722,7 +721,7 @@ namespace MemoryModule.Linux
         {
             public void* codeBase;
             public ulong codeSize;
-            public LinkMap* map;
+            public LinkMap map;
             public unsafe IntPtr[] dependencies;
             public bool initialized;
             public CustomAllocFunc alloc;

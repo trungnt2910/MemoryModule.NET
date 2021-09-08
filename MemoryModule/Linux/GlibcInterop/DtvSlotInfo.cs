@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GLibcInterop
+namespace GlibcInterop
 {
     public unsafe class DtvSlotInfo
     {
@@ -23,7 +23,7 @@ namespace GLibcInterop
             set => _obj->gen = (UIntPtr)value;
         }
 
-        public LinkMap* LinkMap
+        public void* LinkMapPtr
         {
             get => _obj->map;
             set => _obj->map = value;

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace GLibcInterop
+namespace GlibcInterop
 {
     public unsafe class DtvSlotInfoList : IEnumerable<DtvSlotInfoArray>
     {

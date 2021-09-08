@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace GLibcInterop
+namespace GlibcInterop
 {
     public abstract unsafe class ManagedArray<TNative, TManaged> : IEnumerable, IEnumerable<TManaged>
         where TNative: struct

@@ -5,11 +5,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace GLibcInterop
+namespace GlibcInterop
 {
     public static unsafe class GlibcTls
     {
-        private static readonly RtldGlobal* _global;
+        private static readonly RtldGlobal _global;
 
         private static readonly Version[] TestedVersions =
             new Version[]
@@ -27,23 +27,23 @@ namespace GLibcInterop
         public static ulong GetNextModuleId()
         {
             // Mostly, there won't be any gaps. Return the next module index.
-            if (!_global->TlsDtvHasGaps)
+            if (!_global.TlsDtvHasGaps)
             {
-                return ++_global->TlsDtvMaxIndex;
+                return ++_global.TlsDtvMaxIndex;
             }
             else
             {
                 // The static modules should stay there, always.
                 // The index 0 is used as a generation counter.
-                var result = (ulong)_global->_dl_tls_static_nelem + 1;
+                var result = _global.TlsStaticElementCount + 1;
                 var offset = 0ul;
 
-                foreach (var item in _global->TlsDtvSlotInfoList)
+                foreach (var item in _global.TlsDtvSlotInfoList)
                 {
                     for (ulong i = result - offset; i < item.Count; ++i, ++result)
                     {
                         // There is a position without a Link Map - use it.
-                        if (item[i].LinkMap == null)
+                        if (item[i].LinkMapPtr == null)
                         {
                             goto bail;
                         }
@@ -52,13 +52,13 @@ namespace GLibcInterop
                 }
 
                 bail:
-                Debug.Assert(result <= _global->TlsDtvMaxIndex + 1);
+                Debug.Assert(result <= _global.TlsDtvMaxIndex + 1);
                 
                 // There are actually no gaps!
-                if (result == _global->TlsDtvMaxIndex + 1)
+                if (result == _global.TlsDtvMaxIndex + 1)
                 {
-                    _global->TlsDtvHasGaps = false;
-                    ++_global->TlsDtvMaxIndex;
+                    _global.TlsDtvHasGaps = false;
+                    ++_global.TlsDtvMaxIndex;
                 }
 
                 return result;
@@ -69,56 +69,24 @@ namespace GLibcInterop
         /// A naive implementation of _dl_add_to_slotinfo
         /// </summary>
         /// <param name="l">The link map that needs to be added</param>
-        public static void AddToSlotInfo(LinkMap* l)
+        public static void AddToSlotInfo(LinkMap l)
         {
-            var global = RtldGlobal.GetInstance();
+            ulong pos = l.TlsModuleId;
 
-            ulong pos = l->TlsModuleId;
+            var elem = _global.TlsDtvSlotInfoList.FindElement(pos);
 
-            var elem = global->TlsDtvSlotInfoList.FindElement(pos);
-
-            elem.LinkMap = l;
-            elem.Generation = ++global->TlsGeneration;
+            elem.LinkMapPtr = l.GetNativePointer();
+            elem.Generation = ++_global.TlsGeneration;
         }
 
         static GlibcTls()
         {
-            try
-            {
-                // We cannot use the MarshalAsAttribute here, as 
-                // glibc returns a string in read only memory, while
-                // .NET tries to free that memory after marshalling.
-                var libcVerString = Marshal.PtrToStringAnsi(gnu_get_libc_version());
-                var libcVer = Version.Parse(libcVerString);
-
-                Version = libcVer;
-
-                if (!TestedVersions.Contains(libcVer))
-                {
-                    var message = $"Your glibc version, {libcVer}, has not been tested yet.\n" +
-                        $"Some unexpected errors may occurr.\n" +
-                        $"Please open an issue at github.com/trungnt2910/MemoryModule.NET\n" +
-                        $"to remove this message in future releases.";
-
-                    Console.WriteLine(message);
-                    Debug.WriteLine(message);
-                }
-            }
-            catch (Exception e)
-            {
-                var message = $"Error when trying to get glibc version: {e}\n" +
-                    $"Please open an issue at github.com/trungnt2910/MemoryModule.NET";
-
-                Console.WriteLine(message);
-                Debug.WriteLine(message);
-            }
-
-            _global = RtldGlobal.GetInstance();
+            _global = RtldGlobal.Instance;
 
             try
             {
                 _dl_get_tls_static_info(out var size, out var align);
-                if ((ulong)size != _global->TlsStaticSize || (ulong)align != _global->TlsStaticAlign)
+                if ((ulong)size != _global.TlsStaticSize || (ulong)align != _global.TlsStaticAlign)
                 {
                     var message = "rtld_global data seems to be corrupted.\n" +
                         "Please open an issue at github.com/trungnt2910/MemoryModule.NET";
@@ -137,9 +105,6 @@ namespace GLibcInterop
 
             }
         }
-
-        [DllImport("libc")]
-        private static extern IntPtr gnu_get_libc_version();
 
         [DllImport("libc")]
         private static extern void _dl_get_tls_static_info(out UIntPtr size, out UIntPtr align);
