@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -82,6 +83,29 @@ namespace GlibcInterop
         private RtldGlobal(byte* memory)
         {
             _memory = memory;
+
+            try
+            {
+                _dl_get_tls_static_info(out var size, out var align);
+                if ((ulong)size != TlsStaticSize || (ulong)align != TlsStaticAlign)
+                {
+                    var message = "rtld_global data seems to be corrupted.\n" +
+                        "Please open an issue at github.com/trungnt2910/MemoryModule.NET";
+
+                    Console.WriteLine(message);
+                    Debug.WriteLine(message);
+                }
+            }
+            catch (Exception e)
+            {
+                var message = $"Failed to verify rtld_global: {e}\n" +
+                    "Please open an issue at github.com/trungnt2910/MemoryModule.NET";
+
+                Console.WriteLine(message);
+                Debug.WriteLine(message);
+
+            }
+
         }
 
         private static RtldGlobal GetInstance()
@@ -97,6 +121,10 @@ namespace GlibcInterop
 
         [DllImport("dl")]
         private static extern IntPtr dlsym(IntPtr handle, [MarshalAs(UnmanagedType.LPStr)] string name);
+
+        [DllImport("libc")]
+        private static extern void _dl_get_tls_static_info(out UIntPtr size, out UIntPtr align);
+
     }
 
     //[StructLayout(LayoutKind.Sequential)]

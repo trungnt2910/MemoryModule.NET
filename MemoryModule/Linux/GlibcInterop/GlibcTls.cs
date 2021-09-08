@@ -74,31 +74,6 @@ namespace GlibcInterop
         static GlibcTls()
         {
             _global = RtldGlobal.Instance;
-
-            try
-            {
-                _dl_get_tls_static_info(out var size, out var align);
-                if ((ulong)size != _global.TlsStaticSize || (ulong)align != _global.TlsStaticAlign)
-                {
-                    var message = "rtld_global data seems to be corrupted.\n" +
-                        "Please open an issue at github.com/trungnt2910/MemoryModule.NET";
-
-                    Console.WriteLine(message);
-                    Debug.WriteLine(message);
-                }
-            }
-            catch (Exception e)
-            {
-                var message = $"Failed to verify rtld_global: {e}\n" +
-                    "Please open an issue at github.com/trungnt2910/MemoryModule.NET";
-
-                Console.WriteLine(message);
-                Debug.WriteLine(message);
-
-            }
         }
-
-        [DllImport("libc")]
-        private static extern void _dl_get_tls_static_info(out UIntPtr size, out UIntPtr align);
     }
 }
