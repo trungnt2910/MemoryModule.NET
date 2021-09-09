@@ -234,7 +234,7 @@ namespace MemoryModule
                             var currentArgs = new NativeResolveEventArgs(name, reqestingAssembly);
                             var asm = assemblyResolver(null, currentArgs);
 
-                            if (asm._disposedValue)
+                            if (asm?._disposedValue == true)
                             {
                                 Debug.WriteLine("[Warning]: Disposed assembly provided.");
                             }
