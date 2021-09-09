@@ -1,11 +1,12 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace MemoryModule.Tests
 {
-    class Given_DependentDll
+    [TestClass]
+    public class Given_DependentDll
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int AddNumberDelegate(int a, int b);
@@ -13,9 +14,11 @@ namespace MemoryModule.Tests
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void GreetDelegate();
 
-        [Test]
+        [TestMethod]
         public void When_DependencyPreLoaded()
         {
+            Helper.PrintEnvironmentDetails();
+
             var random = new Random();
 
             for (int test = 0; test < 10; ++test)
@@ -25,7 +28,8 @@ namespace MemoryModule.Tests
                     .GetManifestResourceStream($"MemoryModule.Tests.{secretDll}");
                 using var secretAsm = NativeAssembly.Load(secretDllStream, secretDll);
 
-                string dllName = Helper.GetDllName("SampleDLL");
+                // That's why I hate Linux. Case sensitive file systems.
+                string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
                     .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
                 using var asm = NativeAssembly.Load(dllStream);
@@ -36,7 +40,7 @@ namespace MemoryModule.Tests
                 {
                     const int low = -1000000000;
                     const int high = -low;
-                    
+
                     var a = random.Next(low, high);
                     var b = random.Next(low, high);
 
@@ -49,16 +53,18 @@ namespace MemoryModule.Tests
             }
         }
 
-        [Test]
+        [TestMethod]
         public void When_DependencyLateResolve()
         {
+            Helper.PrintEnvironmentDetails();
+
             var random = new Random();
 
             NativeAssembly.AssemblyResolve += NativeAssembly_AssemblyResolve;
 
             for (int test = 0; test < 10; ++test)
             {
-                string dllName = Helper.GetDllName("SampleDLL");
+                string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
                     .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
                 using var asm = NativeAssembly.Load(dllStream);

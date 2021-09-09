@@ -1,0 +1,53 @@
+  
+name: CI Linux
+
+on:
+  create:
+    branches:
+      - release/**
+  push:
+    branches:
+    - master
+    - dev/**
+    paths:
+    - MemoryModule/**
+    - MemoryModule.Tests/**
+    - .github/workflows/**
+  pull_request:
+    branches:
+    - master
+    paths:
+    - MemoryModule/**
+    - MemoryModule.Tests/**
+    - .github/workflows/**
+
+jobs:
+  build:
+
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'MemoryModule.sln'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+          
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.10
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      id:   gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.10
+
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    
+    - name: Run tests
+      run: dotnet test ${{ env.SOLUTION }} /p:Configuration=${{ env.BUILD_CONFIG }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura -l "console;verbosity=detailed"
