@@ -1,11 +1,12 @@
 ﻿# MemoryModule.NET
 
 Loads unmanaged libraries right from your embedded resources!
-Works on Windows only, both on .NET Framework and .NET Core (and of course .NET 5.0)
+Works on Windows and Linux only, both on .NET Framework and .NET Core (and of course .NET 5.0)
 
 ## Features:
 - Load x86 and x64 assemblies, right from the memory. No P/Invoke, no temporary files.
 - Correctly resolves loaded unmanaged libraries, and exposes a `AssemblyResolve` event for users to manually handle it.
+- Linux x86 (32 and 64 bit) support, through interoperation with `glibc`.
 
 ## Sample code:
 ```C#
@@ -35,5 +36,7 @@ using MemoryModule;
 See the DemoApp for more details.  
 
 ## Known issues
-- Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.  
-- Resources are not supported.  
+- Windows: Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.  
+- Windows: Resources are not supported.
+- Linux: Support is limited. While basic C/C++ libraries, such as `libcurl`, can be properly loaded, MemoryModule.NET may not work with other advanced libraries that contain unknown ELF relocations. If that's the case, please [open an issue](https://github.com/trungnt2910/MemoryModule.NET/issues).
+- Linux: As MemoryModule.NET relies on certain `glibc` data structures, it may fail on systems that use beta/custom `glibc` version. Please [open an issue](https://github.com/trungnt2910/MemoryModule.NET/issues) for support.
