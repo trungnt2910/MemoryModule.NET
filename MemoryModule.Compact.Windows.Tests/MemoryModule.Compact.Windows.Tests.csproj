@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+    <DefineConstants>STANDALONE;WINDOWS</DefineConstants>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="../MemoryModule.Tests/SampleDll.dll" />
+    <EmbeddedResource Include="../MemoryModule.Tests/SampleDll64.dll" />
+    <EmbeddedResource Include="../MemoryModule.Tests/Secret.dll" />
+    <EmbeddedResource Include="../MemoryModule.Tests/Secret64.dll" />
+    <Compile Include="../MemoryModule.Tests/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.7" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
+    <PackageReference Include="coverlet.collector" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MemoryModule.Compact.Windows\MemoryModule.Compact.Windows.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -21,16 +21,18 @@ namespace MemoryModule.Tests
             {
                 string dllName = Helper.GetDllName("Secret");
                 var dllStream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
-                using var asm = NativeAssembly.Load(dllStream);
+                    .GetManifestResourceStream($"{Helper.ModuleName}.{dllName}");
+                var asm = NativeAssembly.Load(dllStream);
 
                 var secretFunc = asm.GetDelegate<GetSecretDelegate>("GetSecret");
 
                 for (int i = 0; i < 10; ++i)
                 {
                     int result = secretFunc();
-                    Assert.AreEqual(result, Math.Clamp(result, 0, 100));
+                    Assert.AreEqual(result, Math.Min(Math.Max(0, result), 100));
                 }
+
+                asm.Dispose();
             }
         }
     }

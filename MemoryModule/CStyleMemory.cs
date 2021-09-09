@@ -105,14 +105,67 @@ namespace MemoryModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* memcpy(void* __dest, void* __src, uint __n)
         {
+#if !STANDALONE
             Unsafe.CopyBlockUnaligned(__dest, __src, __n);
+#else
+            // Sacrifice speed for size.
+            uint _n = __n >> 3;
+            uint leftOver = __n & 7;
+
+            ulong* src = (ulong*)__src;
+            ulong* dest = (ulong*)__dest;
+
+            while (_n-- > 0)
+            {
+                *dest = *src;
+                ++dest;
+                ++src;
+            }
+
+            byte* srcByte = (byte*)src;
+            byte* destByte = (byte*)dest;
+
+            while (leftOver-- > 0)
+            {
+                *destByte = *srcByte;
+                ++destByte;
+                ++srcByte;
+            }
+#endif
             return __dest;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void* memset(void* __s, int __c, uint __n)
         {
+#if !STANDALONE
             Unsafe.InitBlockUnaligned(__s, (byte)__c, __n);
+#else
+            byte cByte = (byte)__c;
+            ulong cBlock = cByte;
+            cBlock = (cBlock << 1) | cBlock;
+            cBlock = (cBlock << 2) | cBlock;
+            cBlock = (cBlock << 4) | cBlock;
+
+            uint _n = __n >> 3;
+            uint leftOver = __n & 7;
+
+            ulong* src = (ulong*)__s;
+
+            while (_n-- > 0)
+            {
+                *src = cBlock;
+                ++src;
+            }
+
+            byte* srcByte = (byte*)src;
+
+            while (leftOver-- > 0)
+            {
+                *srcByte = cByte;
+                ++srcByte;
+            }
+#endif
             return __s;
         }
     }

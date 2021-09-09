@@ -42,8 +42,14 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#if WINDOWS
+namespace MemoryModule
+{
+    using MemoryModule.Windows;
+#else
 namespace MemoryModule.Windows
 {
+#endif
     internal static unsafe class NativeAssemblyImpl
     {
         /// <summary>
@@ -146,7 +152,7 @@ namespace MemoryModule.Windows
         public static CustomGetProcAddressFunc MemoryDefaultGetProcAddressDelegate = MemoryDefaultGetProcAddress;
         public static CustomFreeLibraryFunc MemoryDefaultFreeLibraryDelegate = MemoryDefaultFreeLibrary;
 
-        #region Default dependency resolvers
+#region Default dependency resolvers
         internal static void* MemoryDefaultAlloc(void* address, UIntPtr size, MemoryAllocation allocationType, PageProtection protect, void* userdata)
         {
             return VirtualAlloc(address, size, allocationType, protect);
@@ -178,7 +184,7 @@ namespace MemoryModule.Windows
         {
             return FreeLibrary(module);
         }
-        #endregion
+#endregion
 
         private static readonly uint HostMachine =
             (uint)(Environment.Is64BitProcess ?
@@ -202,7 +208,7 @@ namespace MemoryModule.Windows
             },
         };
 
-        #region Core C functions
+#region Core C functions
         private static void * MemoryLoadLibrary(void * data, ulong size)
         {
             return MemoryLoadLibraryEx(
@@ -236,9 +242,9 @@ namespace MemoryModule.Windows
                 ulong lastSectionEnd = 0;
                 ulong alignedImageSize = 0;
 
-                #region 64-bit only
+#region 64-bit only
                 POINTER_LIST* blockedMemory = null;
-                #endregion
+#endregion
 
                 if (!CheckSize(size, (ulong)sizeof(IMAGE_DOS_HEADER)))
                 {
@@ -639,9 +645,9 @@ namespace MemoryModule.Windows
             // AddressOfFunctions contains the RVAs to the "real" functions
             return (void**)(codeBase + (*((ushort*)(codeBase + exports->AddressOfFunctions + (idx * 4)))));
         }
-        #endregion
+#endregion
 
-        #region Helpers
+#region Helpers
         private static bool CheckSize(ulong size, ulong expected)
         {
             if (size < expected)
@@ -672,9 +678,9 @@ namespace MemoryModule.Windows
                 node = next;
             }
         }
-        #endregion
+#endregion
 
-        #region Functions that should have been macros
+#region Functions that should have been macros
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static _IMAGE_SECTION_HEADER* IMAGE_FIRST_SECTION(UIntPtr ntheader)
         {
@@ -755,9 +761,9 @@ namespace MemoryModule.Windows
             // The original uses DWORD_PTR
             return ((ushort)(((ulong)(l)) & 0xffff));
         }
-        #endregion
+#endregion
 
-        #region Functions that the author marks as inline
+#region Functions that the author marks as inline
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong AlignValueUp(ulong value, ulong alignment)
         {
@@ -767,7 +773,7 @@ namespace MemoryModule.Windows
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void* OffsetPointer(void* data, int offset)
         {
-            return Unsafe.Add<byte>(data, offset);
+            return (byte*)data + offset;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -781,7 +787,7 @@ namespace MemoryModule.Windows
         {
             return (void*)AlignValueDown((UIntPtr)address, alignment);
         }
-        #endregion
+#endregion
 
         static bool CopySections(byte* data, ulong size, _IMAGE_NT_HEADERS* old_headers, _MEMORYMODULE* modulePtr)
         {
@@ -1155,7 +1161,7 @@ namespace MemoryModule.Windows
             return true;
         }
 
-        #region Nightmare
+#region Nightmare
         [StructLayout(LayoutKind.Explicit, Size=4, Pack=1)]
         struct __anontype_1639d593_0026
         {
@@ -1570,9 +1576,9 @@ namespace MemoryModule.Windows
             public fixed ushort e_res2[10];
             public int e_lfanew;
         }
-        #endregion
+#endregion
 
-        #region Delegates
+#region Delegates
         //FARPROC:
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate IntPtr FARPROC();
@@ -1584,9 +1590,9 @@ namespace MemoryModule.Windows
         private delegate bool DllEntryProc(void* hinstDLL, Dll fdwReason, void* lpReserved);
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate int ExeEntryProc();
-        #endregion
+#endregion
 
-        #region P/Invoke
+#region P/Invoke
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern void SetLastError(Error dwErrCode);
 
@@ -1626,7 +1632,7 @@ namespace MemoryModule.Windows
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe int VirtualProtect(void* lpAddress, UIntPtr dwSize, PageProtection flNewProtect, void* lpflOldProtect);
-        #endregion
+#endregion
     }
 }
 

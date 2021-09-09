@@ -25,14 +25,14 @@ namespace MemoryModule.Tests
             {
                 string secretDll = Helper.GetDllName("Secret");
                 var secretDllStream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream($"MemoryModule.Tests.{secretDll}");
-                using var secretAsm = NativeAssembly.Load(secretDllStream, secretDll);
+                    .GetManifestResourceStream($"{Helper.ModuleName}.{secretDll}");
+                var secretAsm = NativeAssembly.Load(secretDllStream, secretDll);
 
                 // That's why I hate Linux. Case sensitive file systems.
                 string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
-                using var asm = NativeAssembly.Load(dllStream);
+                    .GetManifestResourceStream($"{Helper.ModuleName}.{dllName}");
+                var asm = NativeAssembly.Load(dllStream);
 
                 var addNumbers = asm.GetDelegate<AddNumberDelegate>("addNumbers");
 
@@ -50,6 +50,9 @@ namespace MemoryModule.Tests
                 // Test if C++ causes any problems...
                 var Greet = asm.GetDelegate<GreetDelegate>("Greet");
                 Greet();
+
+                asm.Dispose();
+                secretAsm.Dispose();
             }
         }
 
@@ -66,8 +69,8 @@ namespace MemoryModule.Tests
             {
                 string dllName = Helper.GetDllName("SampleDll");
                 var dllStream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream($"MemoryModule.Tests.{dllName}");
-                using var asm = NativeAssembly.Load(dllStream);
+                    .GetManifestResourceStream($"{Helper.ModuleName}.{dllName}");
+                var asm = NativeAssembly.Load(dllStream);
 
                 var addNumbers = asm.GetDelegate<AddNumberDelegate>("addNumbers");
 
@@ -85,6 +88,8 @@ namespace MemoryModule.Tests
                 // Test if C++ causes any problems...
                 var Greet = asm.GetDelegate<GreetDelegate>("Greet");
                 Greet();
+
+                asm.Dispose();
             }
 
             NativeAssembly NativeAssembly_AssemblyResolve(object sender, NativeResolveEventArgs args)
@@ -94,7 +99,7 @@ namespace MemoryModule.Tests
                     args.ShouldDisposeAssembly = true;
                     return NativeAssembly.Load(
                         Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                            $"MemoryModule.Tests.{Helper.GetDllName("Secret")}"
+                            $"{Helper.ModuleName}.{Helper.GetDllName("Secret")}"
                             )
                         );
                 }

@@ -11,14 +11,18 @@ on:
     - dev/**
     paths:
     - MemoryModule/**
+    - MemoryModule.Compact.Windows/**
     - MemoryModule.Tests/**
+    - MemoryModule.Compact.Windows.Tests/**
     - .github/workflows/ci.yml
   pull_request:
     branches:
     - master
     paths:
     - MemoryModule/**
+    - MemoryModule.Compact.Windows/**
     - MemoryModule.Tests/**
+    - MemoryModule.Compact.Windows.Tests/**
     - .github/workflows/ci.yml
 
 jobs:
