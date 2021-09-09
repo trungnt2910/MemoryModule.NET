@@ -1,11 +1,12 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace MemoryModule.Tests
 {
-    class Given_DependentDll
+    [TestClass]
+    public class Given_DependentDll
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int AddNumberDelegate(int a, int b);
@@ -13,7 +14,7 @@ namespace MemoryModule.Tests
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void GreetDelegate();
 
-        [Test]
+        [TestMethod]
         public void When_DependencyPreLoaded()
         {
             Helper.PrintEnvironmentDetails();
@@ -39,7 +40,7 @@ namespace MemoryModule.Tests
                 {
                     const int low = -1000000000;
                     const int high = -low;
-                    
+
                     var a = random.Next(low, high);
                     var b = random.Next(low, high);
 
@@ -52,7 +53,7 @@ namespace MemoryModule.Tests
             }
         }
 
-        [Test]
+        [TestMethod]
         public void When_DependencyLateResolve()
         {
             Helper.PrintEnvironmentDetails();

@@ -1,16 +1,17 @@
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace MemoryModule.Tests
 {
+    [TestClass]
     public class Given_StandaloneDll
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int GetSecretDelegate();
 
-        [Test]
+        [TestMethod]
         public void When_Loaded()
         {
             Helper.PrintEnvironmentDetails();
