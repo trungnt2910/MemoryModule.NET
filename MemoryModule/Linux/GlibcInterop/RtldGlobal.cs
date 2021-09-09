@@ -20,7 +20,7 @@ namespace GlibcInterop
 
         private byte* _memory;
 
-        public static readonly RtldGlobal Instance = GetInstance();
+        public static readonly RtldGlobal Instance;
 
         public ulong TlsStaticElementCount
         {
@@ -58,7 +58,7 @@ namespace GlibcInterop
             set => *(UIntPtr*)(_memory + _dl_tls_generation_offset) = (UIntPtr)value;
         }
 
-        public DtvSlotInfoList TlsDtvSlotInfoList => new DtvSlotInfoList((DtvSlotInfoListNative*)(_memory + _dl_tls_dtv_slotinfo_list_offset));
+        public DtvSlotInfoList TlsDtvSlotInfoList => new DtvSlotInfoList(*(DtvSlotInfoListNative**)(_memory + _dl_tls_dtv_slotinfo_list_offset));
 
         static RtldGlobal()
         {
@@ -78,6 +78,10 @@ namespace GlibcInterop
                     offsetField.SetValue(null, (ulong)Marshal.OffsetOf(nativeType, field.Name));
                 }
             }
+
+            // We cannot use initilaizers! If we do, it will run BEFORE the static constructor,
+            // making it point to invalid memory.
+            Instance = GetInstance();
         }
 
         private RtldGlobal(byte* memory)
