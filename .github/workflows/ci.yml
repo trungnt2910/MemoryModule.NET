@@ -30,7 +30,7 @@ jobs:
 
     env:
       BUILD_CONFIG: 'Release'
-      SOLUTION: 'MemoryModule.sln'
+      SOLUTION: 'MemoryModule.Windows.sln'
 
     runs-on: windows-latest
 
