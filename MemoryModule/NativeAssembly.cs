@@ -183,12 +183,15 @@ namespace MemoryModule
                             NativeAssemblyImpl.FreeLibrary(handle);
                             _handles.Remove(handle);
 
-                            var nameSet = _libraryMap[info.Name];
-                            nameSet.Remove(handle);
-
-                            if (nameSet.Count == 0)
+                            if (info.Name != null)
                             {
-                                _libraryMap.Remove(info.Name);
+                                var nameSet = _libraryMap[info.Name];
+                                nameSet.Remove(handle);
+
+                                if (nameSet.Count == 0)
+                                {
+                                    _libraryMap.Remove(info.Name);
+                                }
                             }
                         }
 
@@ -284,8 +287,11 @@ namespace MemoryModule
 
         private static unsafe bool FreeLibraryUnsafe(void* module, void* userdata)
         {
-            FreeLibraryHandle((IntPtr)module);
-
+            if (FreeLibraryHandle((IntPtr)module))
+            {
+                return true;
+            }
+            
             return NativeAssemblyImpl.MemoryDefaultFreeLibrary(module, userdata);
         }
 
