@@ -260,6 +260,7 @@ namespace MemoryModule.Linux
 
             if (module.map != null)
             {
+                GlibcTls.RemoveFromSlotInfo(module.map);
                 CStyleMemory.free(module.map.TlsInitialImage);
                 module.map.Dispose();
             }

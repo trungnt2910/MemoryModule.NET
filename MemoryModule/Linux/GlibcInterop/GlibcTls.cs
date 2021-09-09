@@ -71,6 +71,78 @@ namespace GlibcInterop
             elem.Generation = ++_global.TlsGeneration;
         }
 
+        /// <summary>
+        /// A naive implementation of remove_slotinfo
+        /// </summary>
+        /// <param name="l">The link map that should be removed, that has been added using AddToSlotInfo</param>
+        public static void RemoveFromSlotInfo(LinkMap l)
+        {
+            RemoveFromSlotInfoInternal(l, (DtvSlotInfoListNative*)_global.TlsDtvSlotInfoList.Head, 0);
+        }
+
+        private static bool RemoveFromSlotInfoInternal(LinkMap l, DtvSlotInfoListNative* head, ulong basePos)
+        {
+            ulong index;
+
+            var managedHead = new DtvSlotInfoList(head);
+            var arr = managedHead.First();
+
+            if (l.TlsModuleId >= basePos + (ulong)head->len)
+            {
+                if (head->next == null)
+                {
+                    throw new InvalidOperationException("Invalid link map index.");
+                }
+
+                if (RemoveFromSlotInfoInternal(l, head->next, basePos + (ulong)head->len))
+                {
+                    return true;
+                }
+
+                if ((ulong)head->len == 0)
+                {
+                    return false;
+                }
+
+                index = (ulong)head->len - 1; 
+            }
+            else
+            {
+                var elem = arr[l.TlsModuleId - basePos];
+                elem.Generation = ++_global.TlsGeneration;
+
+                Debug.Assert(elem.LinkMapPtr == l.GetNativePointer());
+                elem.LinkMapPtr = null;
+
+                if (l.TlsModuleId != _global.TlsDtvMaxIndex)
+                {
+                    // Lots of other elems to the right.
+                    return true;
+                }
+
+                index = l.TlsModuleId - 1;
+            }
+
+            ulong stop = (basePos == 0) ? _global.TlsStaticElementCount + 1 : 0;
+
+            while (true)
+            {
+                if (arr[index].LinkMapPtr != null)
+                {
+                    // Shrink!
+                    _global.TlsDtvMaxIndex = basePos + index;
+                    return true;
+                }
+
+                --index;
+
+                if (index == stop)
+                {
+                    return false;
+                }
+            }
+        }
+
         static GlibcTls()
         {
             _global = RtldGlobal.Instance;
