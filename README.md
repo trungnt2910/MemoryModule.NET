@@ -1,5 +1,13 @@
 ﻿# MemoryModule.NET
 
+![BuildStatus](https://github.com/trungnt2910/MemoryModule.NET/actions/workflows/ci.yml/badge.svg)  
+| Package | Version |
+| ---- | ---- |
+| Cross platform | [![CrossPlatformShield](https://shields.io/nuget/vpre/MemoryModule)](https://www.nuget.org/packages/MemoryModule) |
+| Windows | [![WindowsShield](https://shields.io/nuget/vpre/MemoryModule.Compact.Windows)](https://www.nuget.org/packages/MemoryModule.Compact.Windows) |
+| Linux | Coming soon |
+| MacOS | Coming soon |
+
 Loads unmanaged libraries right from your embedded resources!
 Works on Windows and Linux only, both on .NET Framework and .NET Core (and of course .NET 5.0)
 
@@ -34,6 +42,10 @@ using MemoryModule;
 
 
 See the DemoApp for more details.  
+
+## Packages
+- [MemoryModule](https://www.nuget.org/packages/MemoryModule): Cross platform package, with support for x86 and x86_64, Windows and Linux.
+- [MemoryModule.Compact.Windows](https://www.nuget.org/packages/MemoryModule.Compact.Windows): Compact module for small, standalone Windows applications.
 
 ## Known issues
 - Windows: Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.  
