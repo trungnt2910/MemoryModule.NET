@@ -1,4 +1,5 @@
 #include <random>
+#include <iostream>
 #include "Secret.h"
 
 std::random_device rd;
