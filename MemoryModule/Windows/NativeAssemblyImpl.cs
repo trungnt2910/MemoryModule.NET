@@ -229,22 +229,24 @@ namespace MemoryModule.Windows
             CustomGetProcAddressFunc getProcAddress,
             CustomFreeLibraryFunc freeLibrary,
             void* userdata)
-            {
-                _MEMORYMODULE* result = null;
-                IMAGE_DOS_HEADER* dos_header = null;
-                _IMAGE_NT_HEADERS* old_header = null;
-                byte* code = null; byte* headers = null;
-                int locationDelta = 0;
-                _SYSTEM_INFO sysInfo = default;
-                _IMAGE_SECTION_HEADER* section;
-                uint i = 0;
-                ulong optionalSectionSize = 0;
-                ulong lastSectionEnd = 0;
-                ulong alignedImageSize = 0;
+        {
+            _MEMORYMODULE* result = null;
+            IMAGE_DOS_HEADER* dos_header = null;
+            _IMAGE_NT_HEADERS* old_header = null;
+            byte* code = null; byte* headers = null;
+            int locationDelta = 0;
+            _SYSTEM_INFO sysInfo = default;
+            _IMAGE_SECTION_HEADER* section;
+            uint i = 0;
+            ulong optionalSectionSize = 0;
+            ulong lastSectionEnd = 0;
+            ulong alignedImageSize = 0;
 
-#region 64-bit only
+            try
+            {
+                #region 64-bit only
                 POINTER_LIST* blockedMemory = null;
-#endregion
+                #endregion
 
                 if (!CheckSize(size, (ulong)sizeof(IMAGE_DOS_HEADER)))
                 {
@@ -481,12 +483,19 @@ namespace MemoryModule.Windows
                 }
 
                 return result;
-
-            error:
-                // cleanup
-                MemoryFreeLibrary(result);
-                return null;
             }
+            catch
+            {
+                MemoryFreeLibrary(result);
+                throw;
+            }
+
+            // Traditional error handling...
+        error:
+            // cleanup
+            MemoryFreeLibrary(result);
+            return null;
+        }
         private static bool MemoryFreeLibrary(_MEMORYMODULE* mod)
         {
             _MEMORYMODULE* module = (_MEMORYMODULE*)mod;
@@ -940,12 +949,11 @@ namespace MemoryModule.Windows
                 UIntPtr* thunkRef = default;
                 void** funcRef = default;
                 void** tmp = default;
-                void* handle = managedModule.loadLibrary((char*)(codeBase + importDesc->Name), module->userdata);
+                char* moduleName = (char*)(codeBase + importDesc->Name);
+                void* handle = managedModule.loadLibrary(moduleName, module->userdata);
                 if (handle == null)
                 {
-                    SetLastError(Error.ModuleNotFound);
-                    result = false;
-                    break;
+                    throw new NativeAssemblyLoadException($"Cannot load dependency: {Marshal.PtrToStringAnsi((IntPtr)moduleName)}");
                 }
 
                 tmp = (void**)CStyleMemory.realloc(module->modules, (uint)((module->numModules + 1) * sizeof(void*)));
