@@ -449,6 +449,11 @@ namespace MemoryModule.Windows
                     goto error;
                 }
 
+                if (!InitTLS(result))
+                {
+                    goto error;
+                }
+
                 // TLS callbacks are executed BEFORE the main loading
                 if (!ExecuteTLS(result))
                 {
@@ -514,6 +519,10 @@ namespace MemoryModule.Windows
                     typeof(DllEntryProc)
                     );
                 DllEntry(module->codeBase, Dll.ProcessDetach, null);
+
+                // Detach the TLS else VirtualFree will fail.
+                ExecuteTLS(module, Dll.ProcessDetach);
+                FreeTLS(module);
             }
 
             // as nameExportsTable is implemented as a dictionary,
@@ -1142,7 +1151,33 @@ namespace MemoryModule.Windows
             return true;
         }
 
-        static bool ExecuteTLS(_MEMORYMODULE* module)
+        static bool InitTLS(_MEMORYMODULE* module)
+        {
+            byte* codeBase = module->codeBase;
+            _IMAGE_TLS_DIRECTORY* tls = default;
+            void** callback = default;
+
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.Tls);
+            if (directory->VirtualAddress == 0)
+            {
+                return true;
+            }
+
+            tls = (_IMAGE_TLS_DIRECTORY*)(codeBase + directory->VirtualAddress);
+
+            // Assign this library an unique index
+            uint newIndex = TlsAlloc();
+
+            if (newIndex == TLS_OUT_OF_INDEXES)
+            {
+                return false;
+            }
+
+            *(uint*)tls->AddressOfIndex = newIndex;
+            return true;
+        }
+
+        static bool ExecuteTLS(_MEMORYMODULE* module, Dll status = Dll.ProcessAttach)
         {
             byte* codeBase = module->codeBase;
             _IMAGE_TLS_DIRECTORY* tls = default;
@@ -1162,14 +1197,31 @@ namespace MemoryModule.Windows
                 {
                     var callbackFunc = (PIMAGE_TLS_CALLBACK)Marshal.GetDelegateForFunctionPointer(
                         (IntPtr)(*callback), typeof(PIMAGE_TLS_CALLBACK));
-                    callbackFunc((void*)codeBase, (uint)Dll.ProcessAttach, null);
+                    callbackFunc(codeBase, (uint)status, null);
                     callback++;
                 }
             }
             return true;
         }
 
-#region Nightmare
+        static bool FreeTLS(_MEMORYMODULE* module)
+        {
+            byte* codeBase = module->codeBase;
+            _IMAGE_TLS_DIRECTORY* tls = default;
+            void** callback = default;
+
+            _IMAGE_DATA_DIRECTORY* directory = GET_HEADER_DICTIONARY(module, ImageDirectoryEntry.Tls);
+            if (directory->VirtualAddress == 0)
+            {
+                return true;
+            }
+
+            tls = (_IMAGE_TLS_DIRECTORY*)(codeBase + directory->VirtualAddress);
+
+            return TlsFree(*(uint*)tls->AddressOfIndex);
+        }
+
+        #region Nightmare
         [StructLayout(LayoutKind.Explicit, Size=4, Pack=1)]
         struct __anontype_1639d593_0026
         {
@@ -1598,9 +1650,11 @@ namespace MemoryModule.Windows
         private delegate bool DllEntryProc(void* hinstDLL, Dll fdwReason, void* lpReserved);
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate int ExeEntryProc();
-#endregion
+        #endregion
 
-#region P/Invoke
+        #region P/Invoke
+        const uint TLS_OUT_OF_INDEXES = 0xFFFFFFFF;
+
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern void SetLastError(Error dwErrCode);
 
@@ -1640,7 +1694,15 @@ namespace MemoryModule.Windows
 
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe int VirtualProtect(void* lpAddress, UIntPtr dwSize, PageProtection flNewProtect, void* lpflOldProtect);
-#endregion
+
+        // Who says Windows users have less freedom than Linux?
+        // F**k you, glibc.
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        private static extern unsafe uint TlsAlloc();
+
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        private static extern unsafe bool TlsFree(uint index);
+        #endregion
     }
 }
 

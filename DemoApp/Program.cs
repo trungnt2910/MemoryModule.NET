@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace DemoApp
 {
@@ -12,10 +13,10 @@ namespace DemoApp
         delegate int addNumberProc(int a, int b);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void GreetProc();
+        delegate int GetIntDelegate();
 
-        [DllImport("SampleDLL64.dll", EntryPoint = "Greet", CallingConvention = CallingConvention.Cdecl)]
-        static extern void Greet64();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate void GreetProc();
 
         static int Main(string[] args)
         {
@@ -31,6 +32,25 @@ namespace DemoApp
             int num1 = rand.Next(0, 20);
             int num2 = rand.Next(0, 20);
             Console.WriteLine($"{num1}+{num2}={addNumberFunc(num1, num2)}");
+
+            var getThreadLocalInt = asm.GetDelegate<GetIntDelegate>("GetThreadLocalInt");
+
+            for (int i = 0; i < 3; ++i)
+            {
+                Console.WriteLine($"Current global int: {getThreadLocalInt()}");
+            }
+
+            var thread = new Thread(() =>
+            {
+                Console.WriteLine("On second thread...");
+                for (int i = 0; i < 3; ++i)
+                {
+                    Console.WriteLine($"Current global int: {getThreadLocalInt()}");
+                }
+            });
+
+            thread.Start();
+            thread.Join();
 
             var greetFunc = asm.GetDelegate<GreetProc>("Greet");
             greetFunc();
