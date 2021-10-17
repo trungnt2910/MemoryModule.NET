@@ -1,6 +1,6 @@
 using System;
 
-namespace MemoryModule.Linux
+namespace MemoryModule
 {
     [Flags]
     internal enum MmapProtectionFlags : int

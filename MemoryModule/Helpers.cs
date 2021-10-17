@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace MemoryModule.Linux
+namespace MemoryModule
 {
     internal static class Helpers
     {

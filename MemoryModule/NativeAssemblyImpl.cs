@@ -65,7 +65,19 @@ namespace MemoryModule
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                throw new NotImplementedException("MacOS is not implemented yet! Consider helping us!");
+                LoadLibrary = MacOS.NativeAssemblyImpl.LoadLibrary;
+                FreeLibrary = MacOS.NativeAssemblyImpl.FreeLibrary;
+                GetSymbol = MacOS.NativeAssemblyImpl.GetSymbol;
+
+                MemoryDefaultLoadLibrary = MacOS.NativeAssemblyImpl.MemoryDefaultLoadLibrary;
+                MemoryDefaultFreeLibrary = MacOS.NativeAssemblyImpl.MemoryDefaultFreeLibrary;
+                MemoryDefaultGetProcAddress = MacOS.NativeAssemblyImpl.MemoryDefaultGetProcAddress;
+
+                GetSymbolUnsafe = MacOS.NativeAssemblyImpl.GetSymbolUnsafe;
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("Unsupported platform! Please open an issue!");
             }
         }
     }
