@@ -8,9 +8,7 @@ namespace GlibcInterop
     {
         public DtvSlotInfoArray(byte* data, ulong count) : base(data, count)
         {
-            Console.WriteLine("Constructed DtvSlotInfoArray");
-            Console.WriteLine($"From: 0x{(ulong)data:x}");
-            Console.WriteLine($"With count: {count}");
+
         }
 
         public DtvSlotInfoArray(IntPtr managedPtr) :

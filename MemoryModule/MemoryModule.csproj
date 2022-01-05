@@ -24,8 +24,16 @@ Works on Windows and Linux only, both on .NET Framework and .NET Core (and of co
     <PackageReadmeFile>README.md</PackageReadmeFile>
 	-->
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Formats\NewFolder\**" />
+    <None Remove="Linux\**" />
+    <None Remove="MacOS\**" />
+    <None Remove="Windows\**" />
+  </ItemGroup>
     
   <ItemGroup>
+    <PackageReference Include="Iced" Version="1.15.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
   </ItemGroup>
 
