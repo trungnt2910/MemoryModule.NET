@@ -98,18 +98,41 @@ namespace MemoryModule.Linux
         internal static void* MemoryDefaultLoadLibrary(char* filename, void* userdata)
         {
             void* result;
-            result = dlopen(filename);
+            try
+            {
+                result = dlopen(filename);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                result = Dl.dlopen(filename);
+            }
             return result;
         }
 
         internal static void* MemoryDefaultGetProcAddress(void* module, char* name, void* userdata)
         {
-            return dlsym(module, name);
+            void* result;
+            try
+            {
+                result = dlsym(module, name);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                result = Dl.dlsym(module, name);
+            }
+            return result;
         }
 
         internal static bool MemoryDefaultFreeLibrary(void* module, void* userdata)
         {
-            return dlclose(module) == 0;
+            try
+            {
+                return dlclose(module) == 0;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                return Dl.dlclose(module) == 0;
+            }
         }
         #endregion
 
@@ -392,8 +415,8 @@ namespace MemoryModule.Linux
                 }
 
                 if (mprotect(
-                    (void *)alignedAddress, 
-                    (UIntPtr)((ulong)header.MemorySize + (ulong)trueAddress - alignedAddress), 
+                    (void *)alignedAddress,
+                    (UIntPtr)((ulong)header.MemorySize + (ulong)trueAddress - alignedAddress),
                     mmapFlags) != IntPtr.Zero)
                 {
                     throw new NativeAssemblyLoadException($"Cannot protect memory at: 0x{alignedAddress:x}");
@@ -765,10 +788,10 @@ namespace MemoryModule.Linux
 
         [DllImport("libc")]
         private static extern void* mmap(
-            void* addr, 
-            UIntPtr length, 
-            MmapProtectionFlags protectionFlags, 
-            MmapMappingFlags mappingFlags, 
+            void* addr,
+            UIntPtr length,
+            MmapProtectionFlags protectionFlags,
+            MmapMappingFlags mappingFlags,
             int fileDescriptor = -1, int offset = 0);
 
         [DllImport("libc")]
@@ -781,14 +804,26 @@ namespace MemoryModule.Linux
         [DllImport("libc")]
         private static extern IntPtr sysconf(int name);
 
-        [DllImport("dl")]
+        [DllImport("libc")]
         private static extern void* dlopen(char* name, int mode = 0x01 | 0x00100 /*RTLD_LAZY | RTLD_GLOBAL*/);
 
-        [DllImport("dl")]
+        [DllImport("libc")]
         private static extern void* dlsym(void* handle, char* name);
 
-        [DllImport("dl")]
+        [DllImport("libc")]
         private static extern int dlclose(void* handle);
+
+        private static class Dl
+        {
+            [DllImport("libc")]
+            public static extern void* dlopen(char* name, int mode = 0x01 | 0x00100 /*RTLD_LAZY | RTLD_GLOBAL*/);
+
+            [DllImport("libc")]
+            public  static extern void* dlsym(void* handle, char* name);
+
+            [DllImport("libc")]
+            public static extern int dlclose(void* handle);
+        }
 
         #endregion
     }
