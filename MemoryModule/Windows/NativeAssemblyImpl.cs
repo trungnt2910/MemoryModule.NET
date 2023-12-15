@@ -661,7 +661,7 @@ namespace MemoryModule.Windows
             }
 
             // AddressOfFunctions contains the RVAs to the "real" functions
-            return (void**)(codeBase + (*((ushort*)(codeBase + exports->AddressOfFunctions + (idx * 4)))));
+            return (void**)(codeBase + (*((uint*)(codeBase + exports->AddressOfFunctions + (idx * 4)))));
         }
 #endregion
 
