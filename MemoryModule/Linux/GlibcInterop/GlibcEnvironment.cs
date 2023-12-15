@@ -18,13 +18,13 @@ namespace GlibcInterop
 
         public static readonly Version Version;
         public static readonly Version FirstAvailableVersion = new Version(2, 21);
-        public static readonly Version LatestAvailableVersion = new Version(2, 34);
+        public static readonly Version LatestAvailableVersion = new Version(2, 38);
 
         static GlibcEnvironment()
         {
             try
             {
-                // We cannot use the MarshalAsAttribute here, as 
+                // We cannot use the MarshalAsAttribute here, as
                 // glibc returns a string in read only memory, while
                 // .NET tries to free that memory after marshalling.
                 var libcVerString = Marshal.PtrToStringAnsi(gnu_get_libc_version());
