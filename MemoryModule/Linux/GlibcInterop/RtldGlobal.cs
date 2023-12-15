@@ -114,21 +114,42 @@ namespace GlibcInterop
 
         private static RtldGlobal GetInstance()
         {
-            var libdl = dlopen("libdl.so");
-            var ptr = dlsym(libdl, "_rtld_global");
+            IntPtr libdl;
+            IntPtr ptr;
+
+            try
+            {
+                // Recent glibc updates have removed libdl.so from glibc.
+                // https://unix.stackexchange.com/questions/700097/unable-to-load-shared-library-libdl-so-or-one-of-its-dependencies
+                libdl = dlopen("libc.so");
+                ptr = dlsym(libdl, "_rtld_global");
+            }
+            catch (EntryPointNotFoundException)
+            {
+                libdl = Dl.dlopen("libdl.so");
+                ptr = Dl.dlsym(libdl, "_rtld_global");
+            }
 
             return new RtldGlobal((byte*)ptr);
         }
 
-        [DllImport("dl")]
+        [DllImport("libc")]
         private static extern IntPtr dlopen([MarshalAs(UnmanagedType.LPStr)] string name, int mode = 0x01);
 
-        [DllImport("dl")]
+        [DllImport("libc")]
         private static extern IntPtr dlsym(IntPtr handle, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport("libc")]
         private static extern void _dl_get_tls_static_info(out UIntPtr size, out UIntPtr align);
 
+        private static class Dl
+        {
+            [DllImport("dl")]
+            public static extern IntPtr dlopen([MarshalAs(UnmanagedType.LPStr)] string name, int mode = 0x01);
+
+            [DllImport("dl")]
+            public static extern IntPtr dlsym(IntPtr handle, [MarshalAs(UnmanagedType.LPStr)] string name);
+        }
     }
 
     //[StructLayout(LayoutKind.Sequential)]
