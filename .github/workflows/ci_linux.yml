@@ -1,4 +1,4 @@
-  
+
 name: CI Linux
 
 on:
@@ -32,22 +32,22 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
-          
+
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.10
+      uses: gittools/actions/gitversion/setup@v0.10.2
       with:
         versionSpec: '5.x'
 
     - name: Determine Version
       id:   gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.10
+      uses: gittools/actions/gitversion/execute@v0.10.2
 
-    - uses: actions/setup-dotnet@v1
+    - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 3.1.x
-    
+        dotnet-version: 8.0.x
+
     - name: Run tests
       run: dotnet test ${{ env.SOLUTION }} /p:Configuration=${{ env.BUILD_CONFIG }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura -l "console;verbosity=detailed"
