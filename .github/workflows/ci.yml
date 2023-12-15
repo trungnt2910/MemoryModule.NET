@@ -15,6 +15,8 @@ on:
     - MemoryModule.Tests/**
     - MemoryModule.Compact.Windows.Tests/**
     - .github/workflows/ci.yml
+    - *.yml
+    - *.md
   pull_request:
     branches:
     - master
@@ -24,6 +26,8 @@ on:
     - MemoryModule.Tests/**
     - MemoryModule.Compact.Windows.Tests/**
     - .github/workflows/ci.yml
+    - *.yml
+    - *.md
 
 jobs:
   build:
