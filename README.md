@@ -1,15 +1,16 @@
 ﻿# MemoryModule.NET
 
-![BuildStatus](https://github.com/trungnt2910/MemoryModule.NET/actions/workflows/ci.yml/badge.svg)  
+[![Discord Invite](https://dcbadge.vercel.app/api/server/3EB5sKD2Jd?style=flat)](https://discord.gg/3EB5sKD2Jd)&nbsp;
+![BuildStatus](https://github.com/trungnt2910/MemoryModule.NET/actions/workflows/ci.yml/badge.svg)
 | Package | Version |
 | ---- | ---- |
 | Cross platform | [![CrossPlatformShield](https://shields.io/nuget/vpre/MemoryModule)](https://www.nuget.org/packages/MemoryModule) |
 | Windows | [![WindowsShield](https://shields.io/nuget/vpre/MemoryModule.Compact.Windows)](https://www.nuget.org/packages/MemoryModule.Compact.Windows) |
-| Linux | Coming soon |
-| MacOS | Coming soon |
+| Linux | Coming soon (see the [`Abstractions`](https://github.com/trungnt2910/MemoryModule.NET/tree/dev/trungnt2910/Abstractions) branch) |
+| MacOS | Coming soon (see the [`Abstractions`](https://github.com/trungnt2910/MemoryModule.NET/tree/dev/trungnt2910/Abstractions) branch) |
 
 Loads unmanaged libraries right from your embedded resources!
-Works on Windows and Linux only, both on .NET Framework and .NET Core (and of course .NET 5.0)
+Works on Windows and Linux only, both on .NET Framework and .NET Core (and of course .NET 5.0+)
 
 ## Features:
 - Load x86 and x64 assemblies, right from the memory. No P/Invoke, no temporary files.
@@ -41,14 +42,20 @@ using MemoryModule;
 ```
 
 
-See the DemoApp for more details.  
+See the DemoApp for more details.
 
 ## Packages
 - [MemoryModule](https://www.nuget.org/packages/MemoryModule): Cross platform package, with support for x86 and x86_64, Windows and Linux.
 - [MemoryModule.Compact.Windows](https://www.nuget.org/packages/MemoryModule.Compact.Windows): Compact module for small, standalone Windows applications.
 
 ## Known issues
-- Windows: Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.  
+- Windows: Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.
 - Windows: Resources are not supported.
 - Linux: Support is limited. While basic C/C++ libraries, such as `libcurl`, can be properly loaded, MemoryModule.NET may not work with other advanced libraries that contain unknown ELF relocations. If that's the case, please [open an issue](https://github.com/trungnt2910/MemoryModule.NET/issues).
 - Linux: As MemoryModule.NET relies on certain `glibc` data structures, it may fail on systems that use beta/custom `glibc` version. Please [open an issue](https://github.com/trungnt2910/MemoryModule.NET/issues) for support.
+
+## Community
+
+This repo is a part of [Project Reality](https://discord.gg/3EB5sKD2Jd).
+
+Need help using this project? Join me on [Discord](https://discord.gg/3EB5sKD2Jd), and let's find a solution together.
