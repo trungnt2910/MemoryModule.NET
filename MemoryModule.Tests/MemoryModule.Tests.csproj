@@ -7,21 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SampleDll.dll" />
-    <None Remove="SampleDll64.dll" />
-    <None Remove="SampleDll64.so" />
-    <None Remove="Secret.dll" />
-    <None Remove="Secret64.dll" />
-    <None Remove="Secret64.so" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="SampleDll.dll" />
     <EmbeddedResource Include="SampleDll64.dll" />
     <EmbeddedResource Include="SampleDll64.so" />
     <EmbeddedResource Include="Secret.dll" />
     <EmbeddedResource Include="Secret64.dll" />
     <EmbeddedResource Include="Secret64.so" />
+    <EmbeddedResource Include="MemoryModulePP.dll" />
+    <EmbeddedResource Include="MemoryModulePP64.dll" />
   </ItemGroup>
 
   <ItemGroup>
