@@ -48,6 +48,23 @@ See the DemoApp for more details.
 - [MemoryModule](https://www.nuget.org/packages/MemoryModule): Cross platform package, with support for x86 and x86_64, Windows and Linux.
 - [MemoryModule.Compact.Windows](https://www.nuget.org/packages/MemoryModule.Compact.Windows): Compact module for small, standalone Windows applications.
 
+## Integration with OS internals
+
+`MemoryModule.NET`, unlike other projects of the `MemoryModule` family, aims to have a simple
+design and a consistent interface across platforms. (see the
+[`Abstractions`](https://github.com/trungnt2910/MemoryModule.NET/tree/dev/trungnt2910/Abstractions)
+branch for an overview of the future of `MemoryModule.NET`).
+
+Therefore, features requiring a high amount of integration, like
+[TLS support (#34)](https://github.com/trungnt2910/MemoryModule.NET/issues/34) or
+[Interoperability with native APIs (#42)](https://github.com/trungnt2910/MemoryModule.NET/issues/34)
+will **not** be included in `MemoryModule.NET` in the foreseeable future.
+
+However, `MemoryModule.NET` **should** be able to bootstrap other native `MemoryModule`s. For
+example, C# applications targeting only Windows **can** enjoy the above features by bootstrapping
+[MemoryModulePP](https://github.com/bb107/MemoryModulePP), as demonstrated in
+[this repo](https://github.com/trungnt2910/MemoryModulePP.NET).
+
 ## Known issues
 - Windows: Beware of ~~64-bit~~ `dll` files compiled using g++: https://github.com/fancycode/MemoryModule/issues/108. These files must be compiled using `-static-libgcc` and `-static-libstdc++` to load properly, in both the original C version and this version.
 - Windows: Resources are not supported.
