@@ -75,15 +75,15 @@ namespace MemoryModule.Windows
             loadLibrary = loadLibrary ?? MemoryDefaultLoadLibraryDelegate;
             getProcAddress = getProcAddress ?? MemoryDefaultGetProcAddressDelegate;
             freeLibrary = freeLibrary ?? MemoryDefaultFreeLibraryDelegate;
-                            
+
             var handle = MemoryLoadLibraryEx(
-                dataPtr, 
+                dataPtr,
                 (ulong)length,
-                allocMemory, 
-                freeMemory, 
-                loadLibrary, 
-                getProcAddress, 
-                freeLibrary, 
+                allocMemory,
+                freeMemory,
+                loadLibrary,
+                getProcAddress,
+                freeLibrary,
                 null
             );
             if (handle == null)
@@ -188,6 +188,7 @@ namespace MemoryModule.Windows
 
         private static readonly uint HostMachine = ((Func<uint>)(() =>
         {
+#if NET || NETSTANDARD || NET471_OR_GREATER
             switch (RuntimeInformation.ProcessArchitecture)
             {
                 case Architecture.X86:
@@ -201,6 +202,9 @@ namespace MemoryModule.Windows
                 default:
                     throw new PlatformNotSupportedException();
             }
+#else
+            return (uint)(Environment.Is64BitProcess ? Image.FileMachineAMD64 : Image.FileMachinei386);
+#endif
         }))();
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
@@ -224,13 +228,13 @@ namespace MemoryModule.Windows
         private static void * MemoryLoadLibrary(void * data, ulong size)
         {
             return MemoryLoadLibraryEx(
-                data, 
+                data,
                 size,
                 MemoryDefaultAllocDelegate,
                 MemoryDefaultFreeDelegate,
                 MemoryDefaultLoadLibraryDelegate,
                 MemoryDefaultGetProcAddressDelegate,
-                MemoryDefaultFreeLibraryDelegate, 
+                MemoryDefaultFreeLibraryDelegate,
                 null);
         }
 
@@ -618,8 +622,8 @@ namespace MemoryModule.Windows
             {
                 Dictionary<string, uint> nameExports = null;
 
-                // So I actually removed all of Thomas Heller's Binary search 
-                // implementation of MemoryGetProcAddress, and replace it with my 
+                // So I actually removed all of Thomas Heller's Binary search
+                // implementation of MemoryGetProcAddress, and replace it with my
                 // own managed Dictionary implementation.
 
                 // Lazily build name table and sort it by names
@@ -1470,7 +1474,7 @@ namespace MemoryModule.Windows
             public _IMAGE_FILE_HEADER FileHeader;
             public _IMAGE_OPTIONAL_HEADER OptionalHeader;
         }
-        
+
         [StructLayout(LayoutKind.Sequential, Pack=1)]
         struct _IMAGE_OPTIONAL_HEADER
         {
@@ -1508,8 +1512,8 @@ namespace MemoryModule.Windows
             }
             public UIntPtr ImageBase
             {
-                get => Environment.Is64BitProcess ? 
-                    (UIntPtr)_architectureSpecificValue1.ImageBase64 : 
+                get => Environment.Is64BitProcess ?
+                    (UIntPtr)_architectureSpecificValue1.ImageBase64 :
                     (UIntPtr)_architectureSpecificValue1.ImageBase32;
                 set
                 {
