@@ -186,10 +186,22 @@ namespace MemoryModule.Windows
         }
 #endregion
 
-        private static readonly uint HostMachine =
-            (uint)(Environment.Is64BitProcess ?
-            Image.FileMachineAMD64 :
-            Image.FileMachinei386);
+        private static readonly uint HostMachine = ((Func<uint>)(() =>
+        {
+            switch (RuntimeInformation.ProcessArchitecture)
+            {
+                case Architecture.X86:
+                    return Image.FileMachinei386;
+                case Architecture.X64:
+                    return Image.FileMachineAMD64;
+                case Architecture.Arm:
+                    return Image.FileMachineARMv7;
+                case Architecture.Arm64:
+                    return Image.FileMachineARM64;
+                default:
+                    throw new PlatformNotSupportedException();
+            }
+        }))();
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
         private static readonly PageProtection[][][] ProtectionFlags = new PageProtection[][][]

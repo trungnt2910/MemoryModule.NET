@@ -11,6 +11,8 @@ namespace MemoryModule.Windows
         public const int NTSignature = 0x00004550;
         public const int FileMachinei386 = 0x14c;
         public const int FileMachineAMD64 = 0x8664;
+        public const int FileMachineARMv7 = 0x01c4;
+        public const int FileMachineARM64 = 0xaa64;
         public const int FileDll = 0x2000;
         public const int SizeOfBaseRelocation = 8;
         public const ulong OrdinalFlag64 = 0x8000000000000000;
